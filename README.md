@@ -32,6 +32,11 @@
          2. Run test: dotnet test [<testproject>/<testproject>].csproj
    7. dotnet new webapi --use-controllers -o [<project-name>]  // for minimalAPI remove --use-controllers
       1. dotnet add package Microsoft.EntityFrameworkCore.InMemory
+      2. dotnet add package Microsoft.AspNetCore.JsonPatch
+      3. dotnet add package Microsoft.AspNetCore.Mvc.NewtonsoftJson
+      4. dotnet add package Microsoft.EntityFrameworkCore
+      5. dotnet add package Microsoft.EntityFrameworkCore.SqlServer
+      6. dotnet add package Microsoft.EntityFrameworkCore.Tools
    8. dotnet new mvc -au Individual -uld --output [<foldername/namespace>] --framework net7.0  // ASP.Net core web app mvc
       1. The -au Individual paramater makes it use Individual User accounts. The -uld has it use SQL Server instead of SQLite. 
       2. change connecting string in appsettings.json
@@ -308,3 +313,15 @@ See DBInitilizer.
 After setting this class up then utilize it in programs.cs
 To test if it works change connecting string to point to a fresh database. We can delete it after testing.
 Dont forget to change connecting string back.
+
+
+Error fixing
+---
+```
+Only the invariant culture is supported in globalization-invariant mode. See https://aka.ms/GlobalizationInvariantMode for more information. (Parameter 'name')
+en-us is an invalid culture identifier.
+```
+change in any of the projects csproj files. Mostly found in the main project though
+<InvariantGlobalization>true</InvariantGlobalization>
+to
+<InvariantGlobalization>false</InvariantGlobalization>
