@@ -1,5 +1,5 @@
 using RealEstate.DataAccess.Repository;
-using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace RealEstate.DataAccess.UnitOfWork.IUnitOfWork
 {
@@ -7,8 +7,8 @@ namespace RealEstate.DataAccess.UnitOfWork.IUnitOfWork
     {
         IVillaRepository Villas { get; init; }
 
-        int Complete();
+        Task<int> Complete();
 
-        DatabaseFacade Context();
+        IDbContextTransaction Transaction();
     }
 }

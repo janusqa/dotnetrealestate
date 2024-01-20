@@ -52,11 +52,6 @@ namespace RealEstate.DataAccess.Repository
             await Task.CompletedTask;
         }
 
-        public async Task SaveAsync()
-        {
-            await _db.SaveChangesAsync();
-        }
-
         public async Task<IEnumerable<T>> FromSqlAsync(string sql, List<SqlParameter> sqlParameters)
         {
             return await _db.Set<T>().FromSqlRaw(sql, sqlParameters.ToArray()).ToListAsync();

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
 using RealEstate.DataAccess.Data;
 using RealEstate.DataAccess.UnitOfWork.IUnitOfWork;
 
@@ -17,9 +18,9 @@ namespace RealEstate.DataAccess.Repository
             Villas = new VillaRepository(_db);
         }
 
-        public int Complete()
+        public async Task<int> Complete()
         {
-            return _db.SaveChanges();
+            return await _db.SaveChangesAsync();
         }
 
         public void Dispose()
@@ -27,7 +28,7 @@ namespace RealEstate.DataAccess.Repository
             _db.Dispose();
         }
 
-        public DatabaseFacade Context() => _db.Database;
+        public IDbContextTransaction Transaction() => _db.Database.BeginTransaction();
 
     }
 }

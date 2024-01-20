@@ -11,7 +11,6 @@ namespace RealEstate.DataAccess.Repository.IRepository
         Task AddRangeAsync(IEnumerable<T> entities);
         Task RemoveAsync(T entity);
         Task RemoveRangeAsync(IEnumerable<T> entities);
-        Task SaveAsync();
 
         Task<IEnumerable<T>> FromSqlAsync(string sql, List<SqlParameter> sqlParameters);
         Task ExecuteSqlAsync(string sql, List<SqlParameter> sqlParameters);
