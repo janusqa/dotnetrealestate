@@ -10,51 +10,53 @@ namespace RealEstate.DataAccess.Repository
     public class Repository<T> : IRepository<T> where T : class
     {
         private readonly ApplicationDbContext _db;
+        internal DbSet<T> dbSet;
 
         public Repository(ApplicationDbContext db)
         {
             _db = db;
+            dbSet = _db.Set<T>();
         }
 
         public async Task<T?> GetAsync(Expression<Func<T, bool>> predicate, bool tracked = true)
         {
             return tracked
-                ? await _db.Set<T>().Where(predicate).FirstOrDefaultAsync()
-                    : await _db.Set<T>().Where(predicate).AsNoTracking().FirstOrDefaultAsync();
+                ? await dbSet.Where(predicate).FirstOrDefaultAsync()
+                    : await dbSet.Where(predicate).AsNoTracking().FirstOrDefaultAsync();
         }
 
         public async Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>>? predicate)
         {
             return predicate is not null
-                ? await _db.Set<T>().Where(predicate).ToListAsync()
-                    : await _db.Set<T>().ToListAsync();
+                ? await dbSet.Where(predicate).ToListAsync()
+                    : await dbSet.ToListAsync();
         }
 
         public async Task AddAsync(T entity)
         {
-            await _db.Set<T>().AddAsync(entity);
+            await dbSet.AddAsync(entity);
         }
 
         public async Task AddRangeAsync(IEnumerable<T> entities)
         {
-            await _db.Set<T>().AddRangeAsync(entities);
+            await dbSet.AddRangeAsync(entities);
         }
 
         public async Task RemoveAsync(T entity)
         {
-            _db.Set<T>().Remove(entity);
+            dbSet.Remove(entity);
             await Task.CompletedTask;
         }
 
         public async Task RemoveRangeAsync(IEnumerable<T> entities)
         {
-            _db.Set<T>().RemoveRange(entities);
+            dbSet.RemoveRange(entities);
             await Task.CompletedTask;
         }
 
         public async Task<IEnumerable<T>> FromSqlAsync(string sql, List<SqlParameter> sqlParameters)
         {
-            return await _db.Set<T>().FromSqlRaw(sql, sqlParameters.ToArray()).ToListAsync();
+            return await dbSet.FromSqlRaw(sql, sqlParameters.ToArray()).ToListAsync();
         }
 
         public async Task ExecuteSqlAsync(string sql, List<SqlParameter> sqlParameters)
