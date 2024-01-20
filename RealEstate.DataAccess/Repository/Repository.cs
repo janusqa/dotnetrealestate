@@ -16,39 +16,45 @@ namespace RealEstate.DataAccess.Repository
             _db = db;
         }
 
-        public T? Get(int Id)
+        public async Task<T?> GetAsync(Expression<Func<T, bool>> predicate, bool tracked = true)
         {
-            return _db.Set<T>().Find(Id);
+            return tracked
+                ? await _db.Set<T>().Where(predicate).FirstOrDefaultAsync()
+                    : await _db.Set<T>().Where(predicate).AsNoTracking().FirstOrDefaultAsync();
         }
 
-        public IEnumerable<T> GetAll()
+        public async Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>>? predicate)
         {
-            return _db.Set<T>().ToList();
+            return predicate is not null
+                ? await _db.Set<T>().Where(predicate).ToListAsync()
+                    : await _db.Set<T>().ToListAsync();
         }
 
-        public IEnumerable<T> Find(Expression<Func<T, bool>> predicate)
+        public async Task AddAsync(T entity)
         {
-            return _db.Set<T>().Where(predicate);
+            await _db.Set<T>().AddAsync(entity);
         }
 
-        public void Add(T entity)
+        public async Task AddRangeAsync(IEnumerable<T> entities)
         {
-            _db.Set<T>().Add(entity);
+            await _db.Set<T>().AddRangeAsync(entities);
         }
 
-        public void AddRange(IEnumerable<T> entities)
-        {
-            _db.Set<T>().AddRange(entities);
-        }
-
-        public void Remove(T entity)
+        public async Task RemoveAsync(T entity)
         {
             _db.Set<T>().Remove(entity);
+            await Task.CompletedTask;
         }
 
-        public void RemoveRange(IEnumerable<T> entities)
+        public async Task RemoveRangeAsync(IEnumerable<T> entities)
         {
             _db.Set<T>().RemoveRange(entities);
+            await Task.CompletedTask;
+        }
+
+        public async Task SaveAsync()
+        {
+            await _db.SaveChangesAsync();
         }
 
         public async Task<IEnumerable<T>> FromSqlAsync(string sql, List<SqlParameter> sqlParameters)
