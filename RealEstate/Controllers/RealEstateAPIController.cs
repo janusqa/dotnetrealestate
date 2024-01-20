@@ -5,7 +5,6 @@ using RealEstate.DataAccess.UnitOfWork.IUnitOfWork;
 using RealEstate.Models.Domain;
 using RealEstate.Models.Dto;
 
-
 namespace RealEstate.Controllers
 {
     // NB: Derived from ControllerBase instead of Controller like in MVC
@@ -42,13 +41,13 @@ namespace RealEstate.Controllers
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<VillaDto>> GetAll()
+        public async Task<ActionResult<IEnumerable<VillaDto>>> GetAll()
         {
             _logger.LogInformation("Getting all villas!");
 
-            var villas = _uow.Villas.FromSql($@"
+            var villas = (await _uow.Villas.FromSqlAsync($@"
                 SELECT * FROM dbo.Villas
-            ", []).Select(v => v.ToDto()).ToList();
+            ", [])).Select(v => v.ToDto()).ToList();
 
             return Ok(villas);
         }
@@ -58,14 +57,14 @@ namespace RealEstate.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)] // we use them so swagger does not show responses as undocumented
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public ActionResult<VillaDto> Get(int entityId)
+        public async Task<ActionResult<VillaDto>> Get(int entityId)
         {
             // lets do some simple validation
             if (entityId == 0) return BadRequest();
 
-            var villa = _uow.Villas.FromSql($@"
+            var villa = (await _uow.Villas.FromSqlAsync($@"
                 SELECT * FROM dbo.Villas WHERE Id = @Id
-            ", [new SqlParameter("Id", entityId)]).FirstOrDefault();
+            ", [new SqlParameter("Id", entityId)])).FirstOrDefault();
 
             if (villa is null) return NotFound();
 
@@ -76,15 +75,15 @@ namespace RealEstate.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public ActionResult<VillaDto> Post([FromBody] CreateVillaDto villaDto)
+        public async Task<ActionResult<VillaDto>> Post([FromBody] CreateVillaDto villaDto)
         {
 
             // custom validations with modelstate
-            var villaCount = _uow.Villas.SqlQuery<int>($@"
+            var villaCount = (await _uow.Villas.SqlQueryAsync<int>($@"
                 SELECT COUNT(Id) FROM dbo.Villas WHERE LOWER(Name) = LOWER(@Name)
-            ", [new SqlParameter("Name", villaDto.Name)])?.FirstOrDefault();
+            ", [new SqlParameter("Name", villaDto.Name)])).FirstOrDefault();
 
-            if (villaCount is not null && villaCount > 0)
+            if (villaCount > 0)
             {
                 _logger.LogError("Duplicate insert detected!");
 
@@ -99,7 +98,7 @@ namespace RealEstate.Controllers
             // lets do some simple validation
             if (villaDto is null) return BadRequest();
 
-            var Id = _uow.Villas.SqlQuery<int>($@"
+            var Id = (await _uow.Villas.SqlQueryAsync<int>($@"
                 INSERT INTO dbo.Villas 
                     (Name, Details, ImageUrl, Occupancy, Rate, Sqft, Amenity)
                 OUTPUT INSERTED.Id
@@ -112,9 +111,9 @@ namespace RealEstate.Controllers
                     new SqlParameter("Rate", villaDto.Rate),
                     new SqlParameter("Sqft", villaDto.Sqft),
                     new SqlParameter("Amenity", villaDto.Amenity),
-            ])?.FirstOrDefault();
+            ])).FirstOrDefault();
 
-            if (Id is null || Id == 0) return StatusCode(StatusCodes.Status500InternalServerError);
+            if (Id == 0) return StatusCode(StatusCodes.Status500InternalServerError);
 
             return CreatedAtRoute(nameof(Get), new { entityId = Id }, villaDto);
         }
@@ -124,11 +123,11 @@ namespace RealEstate.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult Delete(int entityId) // not returning a type so can use IActionResult as return type
+        public async Task<IActionResult> Delete(int entityId) // not returning a type so can use IActionResult as return type
         {
             if (entityId < 1) return BadRequest();
 
-            _uow.Villas.ExecuteSql($@"
+            await _uow.Villas.ExecuteSqlAsync($@"
                 DELETE FROM dbo.Villas WHERE Id = @Id
             ", [new SqlParameter("Id", entityId)]);
 
@@ -140,12 +139,12 @@ namespace RealEstate.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult Put(int entityId, [FromBody] UpdateVillaDto villaDto) // not returning a type so can use IActionResult as return type
+        public async Task<IActionResult> Put(int entityId, [FromBody] UpdateVillaDto villaDto) // not returning a type so can use IActionResult as return type
         {
             if (entityId < 1) return BadRequest();
             if (villaDto is null || villaDto.Id != entityId) return BadRequest();
 
-            _uow.Villas.ExecuteSql($@"
+            await _uow.Villas.ExecuteSqlAsync($@"
                 UPDATE dbo.Villas 
                 SET
                     Name = @Name,
@@ -194,14 +193,14 @@ namespace RealEstate.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult Patch(int entityId, JsonPatchDocument<UpdateVillaDto> patchVillaDto)
+        public async Task<IActionResult> Patch(int entityId, JsonPatchDocument<UpdateVillaDto> patchVillaDto)
         {
             if (entityId < 1) return BadRequest();
             if (patchVillaDto is null) return BadRequest();
 
-            var villa = _uow.Villas.FromSql($@"
+            var villa = (await _uow.Villas.FromSqlAsync($@"
                 SELECT * FROM dbo.Villas WHERE Id = @Id
-            ", [new SqlParameter("Id", entityId)])?.FirstOrDefault();
+            ", [new SqlParameter("Id", entityId)])).FirstOrDefault();
 
             if (villa is null) return NotFound();
 
@@ -211,7 +210,7 @@ namespace RealEstate.Controllers
 
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            _uow.Villas.ExecuteSql($@"
+            await _uow.Villas.ExecuteSqlAsync($@"
                 UPDATE dbo.Villas 
                 SET
                     Name = @Name,

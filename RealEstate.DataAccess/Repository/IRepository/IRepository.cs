@@ -15,9 +15,9 @@ namespace RealEstate.DataAccess.Repository.IRepository
         void Remove(T entity);
         void RemoveRange(IEnumerable<T> entities);
 
-        IEnumerable<T> FromSql(string sql, List<SqlParameter> sqlParameters);
-        void ExecuteSql(string sql, List<SqlParameter> sqlParameters);
+        Task<IEnumerable<T>> FromSqlAsync(string sql, List<SqlParameter> sqlParameters);
+        Task ExecuteSqlAsync(string sql, List<SqlParameter> sqlParameters);
 
-        IEnumerable<U>? SqlQuery<U>(string sql, List<SqlParameter> sqlParameters);
+        Task<IEnumerable<U>> SqlQueryAsync<U>(string sql, List<SqlParameter> sqlParameters);
     }
 }

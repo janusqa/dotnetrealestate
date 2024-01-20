@@ -51,18 +51,19 @@ namespace RealEstate.DataAccess.Repository
             _db.Set<T>().RemoveRange(entities);
         }
 
-        public IEnumerable<T> FromSql(string sql, List<SqlParameter> sqlParameters)
+        public async Task<IEnumerable<T>> FromSqlAsync(string sql, List<SqlParameter> sqlParameters)
         {
-            return _db.Set<T>().FromSqlRaw(sql, sqlParameters.ToArray()).ToList();
+            return await _db.Set<T>().FromSqlRaw(sql, sqlParameters.ToArray()).ToListAsync();
         }
 
-        public void ExecuteSql(string sql, List<SqlParameter> sqlParameters)
+        public async Task ExecuteSqlAsync(string sql, List<SqlParameter> sqlParameters)
         {
-            _db.Database.ExecuteSqlRaw(sql, sqlParameters.ToArray());
+            await _db.Database.ExecuteSqlRawAsync(sql, sqlParameters.ToArray());
         }
 
-        public IEnumerable<U>? SqlQuery<U>(string sql, List<SqlParameter> sqlParameters) =>
-            [.. _db.Database.SqlQueryRaw<U>(sql, sqlParameters.ToArray())];
-
+        public async Task<IEnumerable<U>> SqlQueryAsync<U>(string sql, List<SqlParameter> sqlParameters)
+        {
+            return await _db.Database.SqlQueryRaw<U>(sql, sqlParameters.ToArray()).ToListAsync();
+        }
     }
 }

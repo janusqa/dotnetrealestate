@@ -35,9 +35,9 @@ namespace RealEstate.Models.Dto
         [Required][MaxLength(30)] string Name,
         string? Details,
         [Required] double Rate,
-        int Sqft,
-        int Occupancy,
-        string? ImageUrl,
+        [Required] int Sqft,
+        [Required] int Occupancy,
+        [Required] string? ImageUrl,
         string? Amenity
     );
 }
