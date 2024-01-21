@@ -1,7 +1,9 @@
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using RealEstate.DataAccess.UnitOfWork.IUnitOfWork;
+using RealEstate.Models.Api;
 using RealEstate.Models.Domain;
 using RealEstate.Models.Dto;
 
@@ -41,7 +43,7 @@ namespace RealEstate.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<VillaDto>>> GetAll()
+        public async Task<ActionResult<APIResponse>> GetAll()
         {
             _logger.LogInformation("Getting all villas!");
 
@@ -49,7 +51,10 @@ namespace RealEstate.Controllers
                 SELECT * FROM dbo.Villas
             ", [])).Select(v => v.ToDto()).ToList();
 
-            return Ok(villas);
+            // _apiResponse.Result = villas;
+            // _apiResponse.StatusCode = System.Net.HttpStatusCode.OK;
+
+            return Ok(new APIResponse { Result = villas, IsSuccess = true, StatusCode = System.Net.HttpStatusCode.OK });
         }
 
         [HttpGet("{entityId:int}", Name = "Get")] // indicates that this endpoint expects an entityId
@@ -57,25 +62,25 @@ namespace RealEstate.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)] // we use them so swagger does not show responses as undocumented
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<VillaDto>> Get(int entityId)
+        public async Task<ActionResult<APIResponse>> Get(int entityId)
         {
             // lets do some simple validation
-            if (entityId == 0) return BadRequest();
+            if (entityId == 0) return BadRequest(new APIResponse { StatusCode = System.Net.HttpStatusCode.BadRequest });
 
             var villa = (await _uow.Villas.FromSqlAsync($@"
                 SELECT * FROM dbo.Villas WHERE Id = @Id
             ", [new SqlParameter("Id", entityId)])).FirstOrDefault();
 
-            if (villa is null) return NotFound();
+            if (villa is null) return NotFound(new APIResponse { StatusCode = System.Net.HttpStatusCode.NotFound });
 
-            return Ok(villa.ToDto());
+            return Ok(new APIResponse { Result = villa.ToDto(), IsSuccess = true, StatusCode = System.Net.HttpStatusCode.OK });
         }
 
         [HttpPost] // indicates that this endpoint expects an entityId
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<VillaDto>> Post([FromBody] CreateVillaDto villaDto)
+        public async Task<ActionResult<APIResponse>> Post([FromBody] CreateVillaDto villaDto)
         {
 
             // custom validations with modelstate
@@ -87,16 +92,22 @@ namespace RealEstate.Controllers
             {
                 _logger.LogError("Duplicate insert detected!");
 
-                ModelState.AddModelError("Duplicate", "Villa already exists!");
-                return BadRequest(ModelState);
+                ModelState.AddModelError("DuplicateError", "Villa already exists!");
+                var response = new APIResponse
+                {
+                    Result = ModelState,
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    ErrorMessages = ["Villa already exists!"]
+                };
+                return BadRequest(response);
             }
 
             // be careful with modelstate when debugging
             // it is checked before method is executed so breakpoing may not be triggered!
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid) return BadRequest(new APIResponse { Result = ModelState, StatusCode = System.Net.HttpStatusCode.BadRequest });
 
             // lets do some simple validation
-            if (villaDto is null) return BadRequest();
+            if (villaDto is null) return BadRequest(new APIResponse { StatusCode = System.Net.HttpStatusCode.BadRequest });
 
             var Id = (await _uow.Villas.SqlQueryAsync<int>($@"
                 INSERT INTO dbo.Villas 
@@ -113,9 +124,9 @@ namespace RealEstate.Controllers
                     new SqlParameter("Amenity", villaDto.Amenity),
             ])).FirstOrDefault();
 
-            if (Id == 0) return StatusCode(StatusCodes.Status500InternalServerError);
+            if (Id == 0) return new ObjectResult(new APIResponse { StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
 
-            return CreatedAtRoute(nameof(Get), new { entityId = Id }, villaDto);
+            return CreatedAtRoute(nameof(Get), new { entityId = Id }, new APIResponse { Result = villaDto, IsSuccess = true, StatusCode = System.Net.HttpStatusCode.Created });
         }
 
         [HttpDelete("{entityId:int}")] // indicates that this endpoint expects an entityId
@@ -123,7 +134,7 @@ namespace RealEstate.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> Delete(int entityId) // not returning a type so can use IActionResult as return type
+        public async Task<ActionResult<APIResponse>> Delete(int entityId) // not returning a type so can use IActionResult as return type
         {
             if (entityId < 1) return BadRequest();
 
@@ -141,8 +152,8 @@ namespace RealEstate.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Put(int entityId, [FromBody] UpdateVillaDto villaDto) // not returning a type so can use IActionResult as return type
         {
-            if (entityId < 1) return BadRequest();
-            if (villaDto is null || villaDto.Id != entityId) return BadRequest();
+            if (entityId < 1) return BadRequest(new APIResponse { StatusCode = System.Net.HttpStatusCode.BadRequest, ErrorMessages = ["Invalid Entity Id"] });
+            if (villaDto is null || villaDto.Id != entityId) return BadRequest(new APIResponse { StatusCode = System.Net.HttpStatusCode.BadRequest, ErrorMessages = ["Invalid Entity Id"] });
 
             await _uow.Villas.ExecuteSqlAsync($@"
                 UPDATE dbo.Villas 
@@ -195,14 +206,14 @@ namespace RealEstate.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Patch(int entityId, JsonPatchDocument<UpdateVillaDto> patchVillaDto)
         {
-            if (entityId < 1) return BadRequest();
-            if (patchVillaDto is null) return BadRequest();
+            if (entityId < 1) return BadRequest(new APIResponse { StatusCode = System.Net.HttpStatusCode.BadRequest });
+            if (patchVillaDto is null) return BadRequest(new APIResponse { StatusCode = System.Net.HttpStatusCode.BadRequest });
 
             var villa = (await _uow.Villas.FromSqlAsync($@"
                 SELECT * FROM dbo.Villas WHERE Id = @Id
             ", [new SqlParameter("Id", entityId)])).FirstOrDefault();
 
-            if (villa is null) return NotFound();
+            if (villa is null) return NotFound(new APIResponse { StatusCode = System.Net.HttpStatusCode.NotFound });
 
             var upDateVillaDTO = villa.ToUpdateDto();
 
@@ -219,7 +230,7 @@ namespace RealEstate.Controllers
                     Occupancy = @Occupancy,
                     Rate = @Rate,
                     Sqft = @Sqft,
-                    Amenity = @Amenity,
+                    Amenity = @Amenity
                 WHERE Id = @Id
             ", [
                 new SqlParameter("Id", entityId),
