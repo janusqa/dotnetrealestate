@@ -9,6 +9,5 @@
             PUT,
             DELETE
         }
-
     }
 }

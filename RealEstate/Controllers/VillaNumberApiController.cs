@@ -23,7 +23,7 @@ namespace RealEstate.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<APIResponse>> GetAll()
+        public async Task<ActionResult<ApiResponse>> GetAll()
         {
             try
             {
@@ -31,11 +31,11 @@ namespace RealEstate.Controllers
                 SELECT * FROM dbo.VillaNumbers
                 ", [])).Select(v => v.ToDto()).ToList();
 
-                return Ok(new APIResponse { Result = villaNumbers, IsSuccess = true, StatusCode = System.Net.HttpStatusCode.OK });
+                return Ok(new ApiResponse { Result = villaNumbers, IsSuccess = true, StatusCode = System.Net.HttpStatusCode.OK });
             }
             catch (Exception ex)
             {
-                return new ObjectResult(new APIResponse { ErrorMessages = [ex.Message], StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
+                return new ObjectResult(new ApiResponse { ErrorMessages = [ex.Message], StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
             }
         }
 
@@ -44,10 +44,10 @@ namespace RealEstate.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)] // we use them so swagger does not show responses as undocumented
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<APIResponse>> Get(int entityId)
+        public async Task<ActionResult<ApiResponse>> Get(int entityId)
         {
             // lets do some simple validation
-            if (entityId == 0) return BadRequest(new APIResponse { StatusCode = System.Net.HttpStatusCode.BadRequest });
+            if (entityId == 0) return BadRequest(new ApiResponse { StatusCode = System.Net.HttpStatusCode.BadRequest });
 
             try
             {
@@ -55,13 +55,13 @@ namespace RealEstate.Controllers
                 SELECT * FROM dbo.VillaNumbers WHERE VillaNo = @Id
                 ", [new SqlParameter("Id", entityId)])).FirstOrDefault();
 
-                if (villaNumber is null) return NotFound(new APIResponse { StatusCode = System.Net.HttpStatusCode.NotFound });
+                if (villaNumber is null) return NotFound(new ApiResponse { StatusCode = System.Net.HttpStatusCode.NotFound });
 
-                return Ok(new APIResponse { Result = villaNumber.ToDto(), IsSuccess = true, StatusCode = System.Net.HttpStatusCode.OK });
+                return Ok(new ApiResponse { Result = villaNumber.ToDto(), IsSuccess = true, StatusCode = System.Net.HttpStatusCode.OK });
             }
             catch (Exception ex)
             {
-                return new ObjectResult(new APIResponse { ErrorMessages = [ex.Message], StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
+                return new ObjectResult(new ApiResponse { ErrorMessages = [ex.Message], StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
             }
         }
 
@@ -69,15 +69,15 @@ namespace RealEstate.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<APIResponse>> Post([FromBody] CreateVillaNumberDto villaNumberDto)
+        public async Task<ActionResult<ApiResponse>> Post([FromBody] CreateVillaNumberDto villaNumberDto)
         {
 
             // be careful with modelstate when debugging
             // it is checked before method is executed so breakpoing may not be triggered!
-            if (!ModelState.IsValid) return BadRequest(new APIResponse { Result = ModelState, StatusCode = System.Net.HttpStatusCode.BadRequest });
+            if (!ModelState.IsValid) return BadRequest(new ApiResponse { Result = ModelState, StatusCode = System.Net.HttpStatusCode.BadRequest });
 
             // lets do some simple validation
-            if (villaNumberDto is null) return BadRequest(new APIResponse { StatusCode = System.Net.HttpStatusCode.BadRequest });
+            if (villaNumberDto is null) return BadRequest(new ApiResponse { StatusCode = System.Net.HttpStatusCode.BadRequest });
 
             var transaction = _uow.Transaction();
             try
@@ -93,16 +93,16 @@ namespace RealEstate.Controllers
                     new SqlParameter("SpecialDetails", villaNumberDto.SpecialDetails)
                 ])).FirstOrDefault();
 
-                if (Id == 0) return BadRequest(new APIResponse { ErrorMessages = ["Invalid data provided"], StatusCode = System.Net.HttpStatusCode.BadRequest });
+                if (Id == 0) return BadRequest(new ApiResponse { ErrorMessages = ["Invalid data provided"], StatusCode = System.Net.HttpStatusCode.BadRequest });
 
                 transaction.Commit();
 
-                return CreatedAtRoute("GetVillaNumber", new { entityId = Id }, new APIResponse { Result = villaNumberDto, IsSuccess = true, StatusCode = System.Net.HttpStatusCode.Created });
+                return CreatedAtRoute("GetVillaNumber", new { entityId = Id }, new ApiResponse { Result = villaNumberDto, IsSuccess = true, StatusCode = System.Net.HttpStatusCode.Created });
             }
             catch (Exception ex)
             {
                 transaction.Rollback();
-                return new ObjectResult(new APIResponse { ErrorMessages = [ex.Message], StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
+                return new ObjectResult(new ApiResponse { ErrorMessages = [ex.Message], StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
             }
         }
 
@@ -111,9 +111,9 @@ namespace RealEstate.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<APIResponse>> Delete(int entityId) // not returning a type so can use IActionResult as return type
+        public async Task<ActionResult<ApiResponse>> Delete(int entityId) // not returning a type so can use IActionResult as return type
         {
-            if (entityId < 1) return BadRequest(new APIResponse { StatusCode = System.Net.HttpStatusCode.BadRequest });
+            if (entityId < 1) return BadRequest(new ApiResponse { StatusCode = System.Net.HttpStatusCode.BadRequest });
 
             try
             {
@@ -123,7 +123,7 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-                return new ObjectResult(new APIResponse { ErrorMessages = [ex.Message], StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
+                return new ObjectResult(new ApiResponse { ErrorMessages = [ex.Message], StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
             }
 
             return NoContent();
@@ -136,8 +136,8 @@ namespace RealEstate.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Put(int entityId, [FromBody] UpdateVillaNumberDto villaNumberDto) // not returning a type so can use IActionResult as return type
         {
-            if (entityId < 1) return BadRequest(new APIResponse { StatusCode = System.Net.HttpStatusCode.BadRequest, ErrorMessages = ["Invalid Entity Id"] });
-            if (villaNumberDto is null || villaNumberDto.VillaNo != entityId) return BadRequest(new APIResponse { StatusCode = System.Net.HttpStatusCode.BadRequest, ErrorMessages = ["Invalid Entity Id"] });
+            if (entityId < 1) return BadRequest(new ApiResponse { StatusCode = System.Net.HttpStatusCode.BadRequest, ErrorMessages = ["Invalid Entity Id"] });
+            if (villaNumberDto is null || villaNumberDto.VillaNo != entityId) return BadRequest(new ApiResponse { StatusCode = System.Net.HttpStatusCode.BadRequest, ErrorMessages = ["Invalid Entity Id"] });
 
             try
             {
@@ -168,11 +168,11 @@ namespace RealEstate.Controllers
                         message = ex.Message;
                     }
                 }
-                return new ObjectResult(new APIResponse { ErrorMessages = [message], StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
+                return new ObjectResult(new ApiResponse { ErrorMessages = [message], StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
             }
             catch (Exception ex)
             {
-                return new ObjectResult(new APIResponse { ErrorMessages = [ex.Message], StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
+                return new ObjectResult(new ApiResponse { ErrorMessages = [ex.Message], StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
             }
 
 

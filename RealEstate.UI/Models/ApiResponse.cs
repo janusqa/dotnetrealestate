@@ -1,8 +1,8 @@
 using System.Net;
 
-namespace RealEstate.Models.Api
+namespace RealEstate.UI.Models
 {
-    public class APIResponse
+    public class ApiResponse
     {
         public HttpStatusCode StatusCode { get; set; }
         public bool IsSuccess { get; set; }
