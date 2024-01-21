@@ -4,7 +4,7 @@ using Microsoft.Data.SqlClient;
 using RealEstate.DataAccess.UnitOfWork.IUnitOfWork;
 using RealEstate.Models.Api;
 using RealEstate.Models.Domain;
-using RealEstate.Models.Dto;
+using RealEstate.Dto;
 
 namespace RealEstate.Controllers
 {
@@ -84,11 +84,12 @@ namespace RealEstate.Controllers
             {
                 var Id = (await _uow.VillaNumbers.SqlQueryAsync<int>($@"
                 INSERT INTO dbo.VillaNumbers 
-                    (VillaNo, SpecialDetails)
+                    (VillaNo, VillaId, SpecialDetails)
                 OUTPUT INSERTED.VillaNo
-                    VALUES (@VillaNo, @SpecialDetails)
+                    VALUES (@VillaNo, @VillaId, @SpecialDetails)
                 ", [
                     new SqlParameter("VillaNo", villaNumberDto.VillaNo),
+                    new SqlParameter("VillaId", villaNumberDto.VillaId),
                     new SqlParameter("SpecialDetails", villaNumberDto.SpecialDetails)
                 ])).FirstOrDefault();
 
@@ -143,12 +144,31 @@ namespace RealEstate.Controllers
                 await _uow.VillaNumbers.ExecuteSqlAsync($@"
                 UPDATE dbo.VillaNumbers 
                 SET
+                    VillaId = @VillaId,
                     SpecialDetails = @SpecialDetails
                 WHERE VillaNo = @Id
                 ", [
                     new SqlParameter("Id", villaNumberDto.VillaNo),
-                new SqlParameter("SpecialDetails", villaNumberDto?.SpecialDetails)
+                    new SqlParameter("VillaId", villaNumberDto.VillaId),
+                    new SqlParameter("SpecialDetails", villaNumberDto?.SpecialDetails)
                 ]);
+            }
+            catch (SqlException ex)
+            {
+                string message = "Oops, An unknown error has occured";
+
+                if (ex.Errors.Count > 0)
+                {
+                    if (ex.Errors[0].Number == 547)
+                    {
+                        message = "Villa does not exist";
+                    }
+                    else
+                    {
+                        message = ex.Message;
+                    }
+                }
+                return new ObjectResult(new APIResponse { ErrorMessages = [message], StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
             }
             catch (Exception ex)
             {

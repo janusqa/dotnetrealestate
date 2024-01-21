@@ -25,6 +25,7 @@ namespace RealEstate.DataAccess.Data
             modelBuilder.Entity<Villa>().Property(e => e.UpdatedDate).HasDefaultValueSql("GETDATE()");
             modelBuilder.Entity<VillaNumber>().Property(e => e.CreatedDate).HasDefaultValueSql("GETDATE()");
             modelBuilder.Entity<VillaNumber>().Property(e => e.UpdatedDate).HasDefaultValueSql("GETDATE()");
+
             modelBuilder.Entity<Villa>().HasData(
                 new Villa
                 {

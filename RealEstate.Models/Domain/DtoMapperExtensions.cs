@@ -1,8 +1,8 @@
-using RealEstate.Models.Dto;
+using RealEstate.Dto;
 
 namespace RealEstate.Models.Domain
 {
-    public static class DomainExtensions
+    public static class DtoMapperExtensions
     {
         // NB this is an "extension method" for villa model
         // the "this" keyword allows this to appear as a member method
@@ -23,6 +23,7 @@ namespace RealEstate.Models.Domain
             );
         }
 
+        // This is only useful if we support PATCH method
         public static UpdateVillaDto ToUpdateDto(this Villa villa)
         {
             return new UpdateVillaDto(
@@ -41,6 +42,7 @@ namespace RealEstate.Models.Domain
         {
             return new VillaNumberDto(
                 villaNumber.VillaNo,
+                villaNumber.VillaId,
                 villaNumber.SpecialDetails
             );
         }

@@ -4,7 +4,7 @@ using Microsoft.Data.SqlClient;
 using RealEstate.DataAccess.UnitOfWork.IUnitOfWork;
 using RealEstate.Models.Api;
 using RealEstate.Models.Domain;
-using RealEstate.Models.Dto;
+using RealEstate.Dto;
 
 namespace RealEstate.Controllers
 {

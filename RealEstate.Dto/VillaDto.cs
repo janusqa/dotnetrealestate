@@ -7,7 +7,7 @@
 // Via a DTO.
 using System.ComponentModel.DataAnnotations;
 
-namespace RealEstate.Models.Dto
+namespace RealEstate.Dto
 {
     public record VillaDto(
         int Id,
