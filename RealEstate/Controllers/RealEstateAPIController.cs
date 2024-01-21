@@ -219,7 +219,7 @@ namespace RealEstate.Controllers
                     Occupancy = @Occupancy,
                     Rate = @Rate,
                     Sqft = @Sqft,
-                    Amenity = @Amenity
+                    Amenity = @Amenity,
                 WHERE Id = @Id
             ", [
                 new SqlParameter("Id", entityId),

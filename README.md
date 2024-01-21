@@ -314,6 +314,18 @@ After setting this class up then utilize it in programs.cs
 To test if it works change connecting string to point to a fresh database. We can delete it after testing.
 Dont forget to change connecting string back.
 
+create a function after app.Run() and call it before  app.MapControllers/Razorpages
+```
+async Task SeedDatabase()
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        var dbInitilizer = scope.ServiceProvider.GetRequiredService<IDBInitilizer>();
+        await dbInitilizer.Initilize();
+    }
+}
+```
+
 
 Error fixing
 ---

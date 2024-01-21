@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Serilog;
 using RealEstate.DataAccess.UnitOfWork.IUnitOfWork;
 using RealEstate.DataAccess.Repository;
+using RealEstate.DataAccess.DBInitilizer;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +26,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 );
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IDBInitilizer, DBInitilizer>();
 
 var app = builder.Build();
 
@@ -39,6 +41,17 @@ app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
+await SeedDatabase();
+
 app.MapControllers();
 
 app.Run();
+
+async Task SeedDatabase()
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        var dbInitilizer = scope.ServiceProvider.GetRequiredService<IDBInitilizer>();
+        await dbInitilizer.Initilize();
+    }
+}
