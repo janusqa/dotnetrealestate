@@ -10,12 +10,15 @@ namespace RealEstate.DataAccess.Repository
         private readonly ApplicationDbContext _db;
 
         public IVillaRepository Villas { get; init; }
+        public IVillaNumberRepository VillaNumbers { get; init; }
 
         public UnitOfWork(ApplicationDbContext db)
         {
             _db = db;
 
             Villas = new VillaRepository(_db);
+            VillaNumbers = new VillaNumberRepository(_db);
+
         }
 
         public async Task<int> Complete()

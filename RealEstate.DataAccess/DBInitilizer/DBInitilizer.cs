@@ -36,7 +36,8 @@ namespace RealEstate.DataAccess.DBInitilizer
             var db = "realestateapi";
             var tables = new string[]
             {
-                "dbo.Villas"
+                "dbo.Villas",
+                "dbo.VillaNumbers"
             };
 
             var triggers = new List<(string Table, string Trigger)>();
@@ -44,7 +45,7 @@ namespace RealEstate.DataAccess.DBInitilizer
             foreach (var table in tables)
             {
                 triggers.Add((table, $@"
-                    CREATE OR ALTER TRIGGER {table}_update_created_date  
+                    CREATE OR ALTER TRIGGER {table}_update_updated_date  
                     ON {table}
                     AFTER UPDATE   
                     AS   
@@ -52,7 +53,7 @@ namespace RealEstate.DataAccess.DBInitilizer
                         SET NOCOUNT ON;
                         UPDATE {table}
                         SET UpdatedDate = GETDATE()
-                        FROM {table}
+                        FROM {table} 
                         INNER JOIN INSERTED ON {table}.Id = INSERTED.Id;
                     END;         
                 "));

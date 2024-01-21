@@ -36,5 +36,13 @@ namespace RealEstate.Models.Domain
                 villa.Amenity
             );
         }
+
+        public static VillaNumberDto ToDto(this VillaNumber villaNumber)
+        {
+            return new VillaNumberDto(
+                villaNumber.VillaNo,
+                villaNumber.SpecialDetails
+            );
+        }
     }
 }

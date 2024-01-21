@@ -11,9 +11,9 @@ namespace RealEstate.Models.Dto
 {
     public record VillaDto(
         int Id,
-        string Name,
+        [Required][MaxLength(30)] string Name,
         string? Details,
-        double Rate,
+        [Required] double Rate,
         int Sqft,
         int Occupancy,
         string? ImageUrl,
@@ -31,7 +31,7 @@ namespace RealEstate.Models.Dto
     );
 
     public record UpdateVillaDto(
-        int Id,
+        [Required] int Id,
         [Required][MaxLength(30)] string Name,
         string? Details,
         [Required] double Rate,
