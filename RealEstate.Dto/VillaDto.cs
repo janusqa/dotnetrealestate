@@ -37,7 +37,7 @@ namespace RealEstate.Dto
         [Required] double Rate,
         [Required] int Sqft,
         [Required] int Occupancy,
-        [Required] string? ImageUrl,
+        [Required] string ImageUrl,
         string? Amenity
     );
 }

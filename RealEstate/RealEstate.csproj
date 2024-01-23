@@ -26,6 +26,7 @@
   <ItemGroup>
     <ProjectReference Include="..\RealEstate.Models\RealEstate.Models.csproj" />
     <ProjectReference Include="..\RealEstate.DataAccess\RealEstate.DataAccess.csproj" />
+    <ProjectReference Include="..\RealEstate.Dto\RealEstate.Dto.csproj" />
   </ItemGroup>
 
 </Project>

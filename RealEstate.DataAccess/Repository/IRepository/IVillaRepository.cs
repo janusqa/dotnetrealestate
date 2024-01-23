@@ -5,5 +5,6 @@ namespace RealEstate.DataAccess.Repository
 {
     public interface IVillaRepository : IRepository<Villa>
     {
+
     }
 }

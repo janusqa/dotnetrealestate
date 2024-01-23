@@ -1,6 +1,6 @@
 using RealEstate.Dto;
 
-namespace RealEstate.Models.Domain
+namespace RealEstate.UI.Models
 {
     public static class DtoMapperExtensions
     {
@@ -32,7 +32,7 @@ namespace RealEstate.Models.Domain
                 villaDto.Rate,
                 villaDto.Sqft,
                 villaDto.Occupancy,
-                villaDto.ImageUrl,
+                villaDto.ImageUrl ?? "",
                 villaDto.Amenity
             );
         }

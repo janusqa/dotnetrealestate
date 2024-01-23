@@ -135,12 +135,12 @@ namespace RealEstate.Controllers
                         VALUES (@Name, @Details, @ImageUrl, @Occupancy, @Rate, @Sqft, @Amenity)
                 ", [
                     new SqlParameter("Name", villaDto.Name),
-                    new SqlParameter("Details", villaDto.Details),
-                    new SqlParameter("ImageUrl", villaDto.ImageUrl),
+                    new SqlParameter("Details", villaDto.Details ?? (object)DBNull.Value),
+                    new SqlParameter("ImageUrl", villaDto.ImageUrl ?? (object)DBNull.Value),
                     new SqlParameter("Occupancy", villaDto.Occupancy),
                     new SqlParameter("Rate", villaDto.Rate),
                     new SqlParameter("Sqft", villaDto.Sqft),
-                    new SqlParameter("Amenity", villaDto.Amenity),
+                    new SqlParameter("Amenity", villaDto.Amenity ?? (object)DBNull.Value),
                 ])).FirstOrDefault();
 
                 if (Id == 0) return new ObjectResult(new ApiResponse { StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
@@ -173,7 +173,7 @@ namespace RealEstate.Controllers
                 return new ObjectResult(new ApiResponse { ErrorMessages = [ex.Message], StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
             }
 
-            return NoContent();
+            return Ok(new ApiResponse { IsSuccess = true, StatusCode = System.Net.HttpStatusCode.NoContent });
         }
 
         [HttpPut("{entityId:int}")] // indicates that this endpoint expects an entityId
@@ -202,12 +202,12 @@ namespace RealEstate.Controllers
                 ", [
                     new SqlParameter("Id", entityId),
                     new SqlParameter("Name", villaDto.Name),
-                    new SqlParameter("Details", villaDto.Details),
+                    new SqlParameter("Details", villaDto.Details ?? (object)DBNull.Value),
                     new SqlParameter("ImageUrl", villaDto.ImageUrl),
                     new SqlParameter("Occupancy", villaDto.Occupancy),
                     new SqlParameter("Rate", villaDto.Rate),
                     new SqlParameter("Sqft", villaDto.Sqft),
-                    new SqlParameter("Amenity", villaDto.Amenity),
+                    new SqlParameter("Amenity", villaDto.Amenity ?? (object)DBNull.Value),
                 ]);
             }
             catch (Exception ex)
@@ -215,7 +215,7 @@ namespace RealEstate.Controllers
                 return new ObjectResult(new ApiResponse { ErrorMessages = [ex.Message], StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
             }
 
-            return NoContent();
+            return Ok(new ApiResponse { IsSuccess = true, StatusCode = System.Net.HttpStatusCode.NoContent });
         }
 
         // FOR DEMO PURPOSES to demostrate patch.  Better to just use PUT in most cases
