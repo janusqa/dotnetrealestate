@@ -1,5 +1,8 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using RealEstate.Dto;
+using RealEstate.UI.ApiService;
 using RealEstate.UI.Models;
 
 namespace RealEstate.UI.Areas.Customer.Controllers
@@ -8,15 +11,40 @@ namespace RealEstate.UI.Areas.Customer.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly IApiService _api;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, IApiService api)
         {
             _logger = logger;
+            _api = api;
+
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
+            var villas = new List<VillaDto>();
+
+            var response = await _api.Villas.GetAllAsync();
+            var jsonData = Convert.ToString(response?.Result);
+            if (response is not null && jsonData is not null)
+            {
+                if (response.IsSuccess)
+                {
+                    villas = JsonConvert.DeserializeObject<List<VillaDto>>(jsonData);
+                }
+                else
+                {
+                    if (response.ErrorMessages is not null)
+                    {
+                        foreach (var message in response.ErrorMessages)
+                        {
+                            Console.WriteLine(message);
+                        }
+                    }
+                }
+            }
+
+            return View(villas);
         }
 
         public IActionResult Privacy()

@@ -1,8 +1,43 @@
-﻿@{
+﻿@model IEnumerable<VillaDto>
+@{
+
     ViewData["Title"] = "Home Page";
 }
-
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<img class="d-block w-100" src="images/home/slide1.jpg" alt="" />
+<hr />
+<div class="row" style="--bs-gutter-x:0">
+    @foreach (var villa in @Model)
+    {
+        <div class="p-4" col-md-12 col-lg-6">
+            <div class="row" style="border-radius:20px; border:1px solid #ff6a00">
+                <div class="col-4">
+                    <img class="d-block w-100" style="border-radius:20px;" src="@villa.ImageUrl" alt="First Slide" />
+                </div>
+                <div class="col-8">
+                    <p class="card-title text-warning" style="font-size:xx-large">@villa.Name</p>
+                    <p class="card-text">
+                        @Html.Raw(@villa.Details)
+                    </p>
+                </div>
+                <div class="col-12">
+                    <div class="row pb-3 pt-2">
+                        <div class="col-4">
+                            <a href="" class="btn btn-success form-control btn-block">Book</a>
+                        </div>
+                        <div class="col-4">
+                            <ul>
+                                <li>Max Occupancy : @villa.Occupancy adults</li>
+                                <li>Villa Size : @villa.Sqft sqft</li>
+                            </ul>
+                        </div>
+                        <div class="col-4">
+                            <span style="border-bottom:1px solid #ff6a00;">
+                                @villa.Rate.ToString("c")
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 </div>
