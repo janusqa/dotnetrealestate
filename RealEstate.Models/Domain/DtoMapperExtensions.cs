@@ -23,7 +23,6 @@ namespace RealEstate.Models.Domain
             );
         }
 
-        // This is only useful if we support PATCH method
         public static UpdateVillaDto ToUpdateDto(this Villa villa)
         {
             return new UpdateVillaDto(

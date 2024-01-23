@@ -67,9 +67,9 @@ namespace RealEstate.UI.Areas.Customer.Controllers
                     {
                         if (response.ErrorMessages is not null)
                         {
-                            foreach (var message in response.ErrorMessages)
+                            foreach (var (message, idx) in response.ErrorMessages.Select((e, idx) => (e, idx)))
                             {
-                                Console.WriteLine(message);
+                                ModelState.AddModelError($"CreateError[{idx}]", message);
                             }
                         }
                     }
@@ -121,15 +121,15 @@ namespace RealEstate.UI.Areas.Customer.Controllers
                 {
                     if (response.IsSuccess)
                     {
-                        return RedirectToAction(nameof(Index), "Villa");
+                        return RedirectToAction(nameof(Index), "VillaNumber");
                     }
                     else
                     {
                         if (response.ErrorMessages is not null)
                         {
-                            foreach (var message in response.ErrorMessages)
+                            foreach (var (message, idx) in response.ErrorMessages.Select((e, idx) => (e, idx)))
                             {
-                                Console.WriteLine(message);
+                                ModelState.AddModelError($"UpdateError[{idx}]", message);
                             }
                         }
                     }
@@ -144,12 +144,9 @@ namespace RealEstate.UI.Areas.Customer.Controllers
         [Route("Customer/Villa/Delete/{entityId}")]
         public async Task<ActionResult<ApiResponse>> Delete(int entityId)
         {
-            Console.WriteLine(entityId);
-            // if (entityId is )
-            // {
             var response = await _api.Villas.DeleteAsync(entityId);
             if (response is not null) return Ok(response);
-            // }
+
             return Ok(new ApiResponse { IsSuccess = false, ErrorMessages = ["Oops, Something went wrong"], StatusCode = System.Net.HttpStatusCode.InternalServerError });
         }
         #endregion

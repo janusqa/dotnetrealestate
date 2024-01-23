@@ -143,7 +143,7 @@ namespace RealEstate.Controllers
                 ", [
                     new SqlParameter("VillaNo", villaNumberDto.VillaNo),
                     new SqlParameter("VillaId", villaNumberDto.VillaId),
-                    new SqlParameter("SpecialDetails", villaNumberDto.SpecialDetails)
+                    new SqlParameter("SpecialDetails", villaNumberDto.SpecialDetails ?? (object)DBNull.Value)
                 ])).FirstOrDefault();
 
                 if (Id == 0) return BadRequest(new ApiResponse { ErrorMessages = ["Invalid data provided"], StatusCode = System.Net.HttpStatusCode.BadRequest });
@@ -151,6 +151,15 @@ namespace RealEstate.Controllers
                 transaction.Commit();
 
                 return CreatedAtRoute("GetVillaNumber", new { entityId = Id }, new ApiResponse { Result = villaNumberDto, IsSuccess = true, StatusCode = System.Net.HttpStatusCode.Created });
+            }
+            catch (SqlException ex)
+            {
+                string message = ex.Errors[0].Number switch
+                {
+                    2627 => "Villa number already exists",
+                    _ => ex.Message,
+                };
+                return new ObjectResult(new ApiResponse { ErrorMessages = [message], StatusCode = System.Net.HttpStatusCode.BadRequest }) { StatusCode = StatusCodes.Status400BadRequest };
             }
             catch (Exception ex)
             {
@@ -179,7 +188,7 @@ namespace RealEstate.Controllers
                 return new ObjectResult(new ApiResponse { ErrorMessages = [ex.Message], StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
             }
 
-            return NoContent();
+            return Ok(new ApiResponse { IsSuccess = true, StatusCode = System.Net.HttpStatusCode.NoContent });
         }
 
         [HttpPut("{entityId:int}")] // indicates that this endpoint expects an entityId
@@ -195,32 +204,25 @@ namespace RealEstate.Controllers
             try
             {
                 await _uow.VillaNumbers.ExecuteSqlAsync($@"
-                UPDATE dbo.VillaNumbers 
-                SET
-                    VillaId = @VillaId,
-                    SpecialDetails = @SpecialDetails
-                WHERE VillaNo = @Id
+                    UPDATE dbo.VillaNumbers 
+                    SET
+                        VillaId = @VillaId,
+                        SpecialDetails = @SpecialDetails
+                    WHERE VillaNo = @Id
                 ", [
                     new SqlParameter("Id", villaNumberDto.VillaNo),
                     new SqlParameter("VillaId", villaNumberDto.VillaId),
-                    new SqlParameter("SpecialDetails", villaNumberDto?.SpecialDetails)
+                    new SqlParameter("SpecialDetails", villaNumberDto?.SpecialDetails ?? (object)DBNull.Value)
                 ]);
             }
             catch (SqlException ex)
             {
-                string message = "Oops, An unknown error has occured";
-
-                if (ex.Errors.Count > 0)
+                string message = ex.Errors[0].Number switch
                 {
-                    if (ex.Errors[0].Number == 547)
-                    {
-                        message = "Villa does not exist";
-                    }
-                    else
-                    {
-                        message = ex.Message;
-                    }
-                }
+                    547 => "Villa does not exist",
+                    _ => ex.Message,
+                };
+
                 return new ObjectResult(new ApiResponse { ErrorMessages = [message], StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
             }
             catch (Exception ex)
@@ -228,8 +230,7 @@ namespace RealEstate.Controllers
                 return new ObjectResult(new ApiResponse { ErrorMessages = [ex.Message], StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
             }
 
-
-            return NoContent();
+            return Ok(new ApiResponse { IsSuccess = true, StatusCode = System.Net.HttpStatusCode.NoContent });
         }
     }
 }

@@ -1,0 +1,45 @@
+@model VillaNumberCreateView
+
+<form asp-action="Create">
+    <div class="container border p-3">
+        <h1 class="text-primary">Create Villa Number</h1>
+        <hr />
+        <div class="row">
+            <div asp-validation-summary="All" clas="text-danger"></div>
+            <div class="col-2>">
+                <label asp-for="Dto.VillaNo" class="control-label pt-2" style="font-size:20px;"></label>
+            </div>
+            <div class="col-10 pb-3">
+                <input asp-for="Dto.VillaNo" class="form-control" />
+                <span asp-validation-for="Dto.VillaNo" class="text-danger"></span>
+            </div>
+            <div class="col-2>">
+                <label asp-for="Dto.VillaId" class="control-label pt-2" style="font-size:20px;"></label>
+            </div>
+            <div class="col-10 pb-3">
+                <Select asp-for="Dto.VillaId" asp-items="@Model.VillaList" class="form-select">
+                    <Option disable selected value="">--Select Category--</Option>
+                </Select>
+                <span asp-validation-for="Dto.VillaId" class="text-danger"></span>
+            </div>
+            <div class="col-2>">
+                <label asp-for="Dto.SpecialDetails" class="control-label pt-2" style="font-size:20px;"></label>
+            </div>
+            <div class="col-10 pb-3">
+                <textarea asp-for="Dto.SpecialDetails" class="form-control" rows="5"></textArea>
+                <span asp-validation-for="Dto.SpecialDetails" class="text-danger"></span>
+            </div>
+            <div class="col-5">
+                <button type="submit" class="btn btn-success form-control">Create</button>
+            </div>
+            <div class="col-5 offset-2">
+                <a asp-area="Customer" asp-controller="VillaNumber" asp-action="Index"
+                    class="btn btn-secondary form-control">Back to Villa Numberss</a>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

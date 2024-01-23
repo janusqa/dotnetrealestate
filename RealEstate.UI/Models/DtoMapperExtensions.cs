@@ -22,7 +22,6 @@ namespace RealEstate.UI.Models
             );
         }
 
-        // This is only useful if we support PATCH method
         public static UpdateVillaDto ToUpdateDto(this VillaDto villaDto)
         {
             return new UpdateVillaDto(
@@ -34,6 +33,24 @@ namespace RealEstate.UI.Models
                 villaDto.Occupancy,
                 villaDto.ImageUrl ?? "",
                 villaDto.Amenity
+            );
+        }
+
+        public static CreateVillaNumberDto ToCreateDto(this VillaNumberDto villaNumberDto)
+        {
+            return new CreateVillaNumberDto(
+                villaNumberDto.VillaNo,
+                villaNumberDto.VillaId,
+                villaNumberDto.SpecialDetails
+            );
+        }
+
+        public static UpdateVillaNumberDto ToUpdateDto(this VillaNumberDto villaNumberDto)
+        {
+            return new UpdateVillaNumberDto(
+                villaNumberDto.VillaNo,
+                villaNumberDto.VillaId,
+                villaNumberDto.SpecialDetails
             );
         }
     }
