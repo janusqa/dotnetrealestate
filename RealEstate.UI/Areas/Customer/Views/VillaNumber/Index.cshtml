@@ -22,7 +22,7 @@
             @foreach (var villaNumber in Model)
             {
                 <tr>
-                    <td>@villaNumber.VillaId</td>
+                    <td>@villaNumber.VillaDto?.Name</td>
                     <td>@villaNumber.VillaNo</td>
                     <td>
                         <a asp-area="Customer" asp-controller="VillaNumber" asp-action="Update"

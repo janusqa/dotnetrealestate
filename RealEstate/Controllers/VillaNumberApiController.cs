@@ -27,9 +27,35 @@ namespace RealEstate.Controllers
         {
             try
             {
-                var villaNumbers = (await _uow.VillaNumbers.FromSqlAsync($@"
-                SELECT * FROM dbo.VillaNumbers
-                ", [])).Select(v => v.ToDto()).ToList();
+                var villaNumbers = (await _uow.VillaNumbers.SqlQueryAsync<VillaNumberWithIncluded>($@"
+                    SELECT 
+                        v.*,
+                        vn.VillaNo,
+                        vn.SpecialDetails,
+                        vn.Id As VnId
+                    FROM dbo.VillaNumbers vn INNER JOIN dbo.Villas v on (vn.VillaId = v.Id)
+                ", []))
+                .Select(vn =>
+                    new VillaNumber
+                    {
+                        Id = vn.VnId,
+                        SpecialDetails = vn.SpecialDetails,
+                        VillaNo = vn.VillaNo,
+                        VillaId = vn.Id,
+                        Villa = new Villa
+                        {
+                            Id = vn.Id,
+                            Name = vn.Name,
+                            Details = vn.Details,
+                            Rate = vn.Rate,
+                            Sqft = vn.Sqft,
+                            Occupancy = vn.Occupancy,
+                            ImageUrl = vn.ImageUrl,
+                            Amenity = vn.Amenity
+                        }
+                    }
+                )
+                .Select(vn => vn.ToDto()).ToList();
 
                 return Ok(new ApiResponse { Result = villaNumbers, IsSuccess = true, StatusCode = System.Net.HttpStatusCode.OK });
             }
@@ -51,13 +77,40 @@ namespace RealEstate.Controllers
 
             try
             {
-                var villaNumber = (await _uow.VillaNumbers.FromSqlAsync($@"
-                SELECT * FROM dbo.VillaNumbers WHERE VillaNo = @Id
-                ", [new SqlParameter("Id", entityId)])).FirstOrDefault();
+                var villaNumber = (await _uow.VillaNumbers.SqlQueryAsync<VillaNumberWithIncluded>($@"
+                   SELECT 
+                        v.*,
+                        vn.VillaNo,
+                        vn.SpecialDetails,
+                        vn.Id As VnId
+                    FROM dbo.VillaNumbers vn INNER JOIN dbo.Villas v on (vn.VillaId = v.Id)
+                    WHERE VillaNo = @Id
+                ", [new SqlParameter("Id", entityId)]))
+                .Select(vn =>
+                    new VillaNumber
+                    {
+                        Id = vn.VnId,
+                        SpecialDetails = vn.SpecialDetails,
+                        VillaNo = vn.VillaNo,
+                        VillaId = vn.Id,
+                        Villa = new Villa
+                        {
+                            Id = vn.Id,
+                            Name = vn.Name,
+                            Details = vn.Details,
+                            Rate = vn.Rate,
+                            Sqft = vn.Sqft,
+                            Occupancy = vn.Occupancy,
+                            ImageUrl = vn.ImageUrl,
+                            Amenity = vn.Amenity
+                        }
+                    }
+                )
+                .FirstOrDefault()?.ToDto();
 
                 if (villaNumber is null) return NotFound(new ApiResponse { StatusCode = System.Net.HttpStatusCode.NotFound });
 
-                return Ok(new ApiResponse { Result = villaNumber.ToDto(), IsSuccess = true, StatusCode = System.Net.HttpStatusCode.OK });
+                return Ok(new ApiResponse { Result = villaNumber, IsSuccess = true, StatusCode = System.Net.HttpStatusCode.OK });
             }
             catch (Exception ex)
             {

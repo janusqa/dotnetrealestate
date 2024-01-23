@@ -1,11 +1,13 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RealEstate.Dto
 {
     public record VillaNumberDto(
         [Required] int VillaNo,
         [Required] int VillaId,
-        string? SpecialDetails
+        string? SpecialDetails,
+        VillaDto? VillaDto
     );
 
     public record CreateVillaNumberDto(

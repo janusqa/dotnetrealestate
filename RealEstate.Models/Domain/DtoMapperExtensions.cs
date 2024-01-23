@@ -43,7 +43,8 @@ namespace RealEstate.Models.Domain
             return new VillaNumberDto(
                 villaNumber.VillaNo,
                 villaNumber.VillaId,
-                villaNumber.SpecialDetails
+                villaNumber.SpecialDetails,
+                villaNumber.Villa?.ToDto()
             );
         }
     }
