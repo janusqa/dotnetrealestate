@@ -7,6 +7,7 @@ namespace RealEstate.DataAccess.UnitOfWork.IUnitOfWork
     {
         IVillaRepository Villas { get; init; }
         IVillaNumberRepository VillaNumbers { get; init; }
+        ILocalUserRepository LocalUsers { get; init; }
 
         Task<int> Complete();
 

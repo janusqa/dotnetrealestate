@@ -215,9 +215,11 @@ dotnet list [<PROJECT>] package
 
 SECRETS
 -------
-dotnet user-secrets --project [<projectname>]init
+dotnet user-secrets --project [<projectname>] init
 dotnet user-secrets --project [<projectname>] set "ApiKey" "your-api-key"
 var apiKey = builder.Configuration.GetValue<string>("ApiKey");
+OR
+var jwtSecret = config["ApiSettings:JwtAccessSecret"]
 
 
 IDENTITY ROLES
@@ -337,3 +339,32 @@ change in any of the projects csproj files. Mostly found in the main project tho
 <InvariantGlobalization>true</InvariantGlobalization>
 to
 <InvariantGlobalization>false</InvariantGlobalization>
+
+
+WebApi - JWt - Auth configuration
+---
+1. Add "app.UseAuthentication()" above "app.UseAuthoriztion()" in program.cs
+2. dotnet add package Microsoft.AspNetCore.Authentication.JwtBearer
+3. configure the auth service by adding the below in the services section of program.cs
+   ```
+   var JwtAccessSecret = builder.Configuration.GetValue<string>("ApiSettings:JwtAccessSecret") ?? "";
+   builder.Services.AddAuthentication(auth =>
+   {
+      auth.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+      auth.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+   }).AddJwtBearer(auth =>
+   {
+      auth.RequireHttpsMetadata = false;
+      auth.SaveToken = true;
+      auth.TokenValidationParameters = new TokenValidationParameters
+      {
+         ValidateIssuerSigningKey = true,
+         IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(JwtAccessSecret)),
+         ValidateIssuer = false,
+         ValidateAudience = false
+      };
+   });
+   ```
+4. Note it is assumed you have alreay set up  secrets
+   1. dotnet user-secrets --project RealEstate init
+   2. dotnet user-secrets --project RealEstate.csproj set "ApiSettings:JwtAccessSecret" "blahblahblah"

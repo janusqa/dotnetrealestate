@@ -14,6 +14,8 @@ namespace RealEstate.DataAccess.Data
         public DbSet<Villa> Villas { get; set; }
         public DbSet<VillaNumber> VillaNumbers { get; set; }
 
+        public DbSet<LocalUser> LocalUsers { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
 
@@ -25,6 +27,8 @@ namespace RealEstate.DataAccess.Data
             modelBuilder.Entity<Villa>().Property(e => e.UpdatedDate).HasDefaultValueSql("GETDATE()");
             modelBuilder.Entity<VillaNumber>().Property(e => e.CreatedDate).HasDefaultValueSql("GETDATE()");
             modelBuilder.Entity<VillaNumber>().Property(e => e.UpdatedDate).HasDefaultValueSql("GETDATE()");
+            modelBuilder.Entity<LocalUser>().Property(e => e.CreatedDate).HasDefaultValueSql("GETDATE()");
+            modelBuilder.Entity<LocalUser>().Property(e => e.UpdatedDate).HasDefaultValueSql("GETDATE()");
 
             modelBuilder.Entity<Villa>().HasData(
                 new Villa

@@ -61,7 +61,8 @@ namespace RealEstate.UI.Areas.Customer.Controllers
                 {
                     if (response.IsSuccess)
                     {
-                        return RedirectToAction(nameof(Index));
+                        TempData["success"] = "Villa created successfully!";
+                        return RedirectToAction(nameof(Index), "Villa");
                     }
                     else
                     {
@@ -121,7 +122,8 @@ namespace RealEstate.UI.Areas.Customer.Controllers
                 {
                     if (response.IsSuccess)
                     {
-                        return RedirectToAction(nameof(Index), "VillaNumber");
+                        TempData["success"] = "Villa updated successfully!";
+                        return RedirectToAction(nameof(Index), "Villa");
                     }
                     else
                     {
@@ -144,10 +146,23 @@ namespace RealEstate.UI.Areas.Customer.Controllers
         [Route("Customer/Villa/Delete/{entityId}")]
         public async Task<ActionResult<ApiResponse>> Delete(int entityId)
         {
-            var response = await _api.Villas.DeleteAsync(entityId);
-            if (response is not null) return Ok(response);
+            try
+            {
+                var response = await _api.Villas.DeleteAsync(entityId);
+                if (response is not null && response.IsSuccess)
+                {
+                    TempData["success"] = "Villa deleted successfully!";
+                    return Ok(response);
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = ex.Message;
+                return new ObjectResult(new ApiResponse { ErrorMessages = [ex.Message], StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
+            }
 
-            return Ok(new ApiResponse { IsSuccess = false, ErrorMessages = ["Oops, Something went wrong"], StatusCode = System.Net.HttpStatusCode.InternalServerError });
+            TempData["error"] = "Oops, Something went wrong";
+            return new ObjectResult(new ApiResponse { ErrorMessages = ["Oops, Something went wrong"], StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
         }
         #endregion
     }

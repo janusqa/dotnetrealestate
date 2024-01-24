@@ -37,7 +37,8 @@ namespace RealEstate.DataAccess.DBInitilizer
             var tables = new string[]
             {
                 "dbo.Villas",
-                "dbo.VillaNumbers"
+                "dbo.VillaNumbers",
+                "dbo.LocalUsers"
             };
 
             var triggers = new List<(string Table, string Trigger)>();
