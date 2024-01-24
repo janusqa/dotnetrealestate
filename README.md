@@ -368,3 +368,4 @@ WebApi - JWt - Auth configuration
 4. Note it is assumed you have alreay set up  secrets
    1. dotnet user-secrets --project RealEstate init
    2. dotnet user-secrets --project RealEstate.csproj set "ApiSettings:JwtAccessSecret" "blahblahblah"
+5. Modify swagger in program.cs to support Auth. See Program.cs

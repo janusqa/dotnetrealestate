@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using RealEstate.DataAccess.UnitOfWork.IUnitOfWork;

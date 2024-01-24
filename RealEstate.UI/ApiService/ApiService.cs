@@ -9,6 +9,8 @@ namespace RealEstate.UI.ApiService
 
         public IVillaService Villas { get; init; }
         public IVillaNumberService VillaNumbers { get; init; }
+        public IAuthService LocalUsers { get; init; }
+
 
         public ApiService(IHttpClientFactory httpClient, IConfiguration configuration)
         {
@@ -18,6 +20,8 @@ namespace RealEstate.UI.ApiService
 
             Villas = new VillaService(_httpClient, $@"{urlBase}/api/villas");
             VillaNumbers = new VillaNumberService(_httpClient, $@"{urlBase}/api/villanumbers");
+            LocalUsers = new AuthService(_httpClient, $@"{urlBase}/api/users");
+
         }
     }
 }
