@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using RealEstate.Dto;
 using RealEstate.UI.ApiService;
 using RealEstate.UI.Models;
+using RealEstate.Utility;
 
 namespace RealEstate.UI.Areas.Customer.Controllers
 {
@@ -20,7 +22,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
         {
             var villas = new List<VillaDto>();
 
-            var response = await _api.Villas.GetAllAsync();
+            var response = await _api.Villas.GetAllAsync(HttpContext.Session.GetString(SD.SessionToken));
             var jsonData = Convert.ToString(response?.Result);
             if (response is not null && jsonData is not null)
             {
@@ -43,19 +45,21 @@ namespace RealEstate.UI.Areas.Customer.Controllers
             return View(villas);
         }
 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create()
         {
             await Task.CompletedTask;
             return View();
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateVillaDto dto)
         {
             if (ModelState.IsValid)
             {
-                var response = await _api.Villas.PostAsync(dto);
+                var response = await _api.Villas.PostAsync(dto, HttpContext.Session.GetString(SD.SessionToken));
                 var jsonData = Convert.ToString(response?.Result);
                 if (response is not null && jsonData is not null)
                 {
@@ -79,11 +83,12 @@ namespace RealEstate.UI.Areas.Customer.Controllers
             return View(dto);
         }
 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update(int? entityId)
         {
             if (entityId is not null && entityId > 0)
             {
-                var response = await _api.Villas.GetAsync(entityId.Value);
+                var response = await _api.Villas.GetAsync(entityId.Value, HttpContext.Session.GetString(SD.SessionToken));
                 var jsonData = Convert.ToString(response?.Result);
 
                 if (response is not null && jsonData is not null)
@@ -110,13 +115,14 @@ namespace RealEstate.UI.Areas.Customer.Controllers
             return NotFound();
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Update(UpdateVillaDto dto)
         {
             if (ModelState.IsValid)
             {
-                var response = await _api.Villas.PutAsync(dto.Id, dto);
+                var response = await _api.Villas.PutAsync(dto.Id, dto, HttpContext.Session.GetString(SD.SessionToken));
                 // var jsonData = Convert.ToString(response?.Result);
                 if (response is not null)
                 {
@@ -142,13 +148,14 @@ namespace RealEstate.UI.Areas.Customer.Controllers
 
 
         #region API CALLS
+        [Authorize(Roles = "Admin")]
         [HttpDelete]
         [Route("Customer/Villa/Delete/{entityId}")]
         public async Task<ActionResult<ApiResponse>> Delete(int entityId)
         {
             try
             {
-                var response = await _api.Villas.DeleteAsync(entityId);
+                var response = await _api.Villas.DeleteAsync(entityId, HttpContext.Session.GetString(SD.SessionToken));
                 if (response is not null && response.IsSuccess)
                 {
                     TempData["success"] = "Villa deleted successfully!";

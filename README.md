@@ -245,6 +245,7 @@ Configure Sessions
 1.
 in program.cs below AddIdentity and ConfigureAplicationCookie
 ```
+builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options => {
    options.IdleTimeout = TimeSpan.FromMinutes(100);
@@ -369,3 +370,26 @@ WebApi - JWt - Auth configuration
    1. dotnet user-secrets --project RealEstate init
    2. dotnet user-secrets --project RealEstate.csproj set "ApiSettings:JwtAccessSecret" "blahblahblah"
 5. Modify swagger in program.cs to support Auth. See Program.cs
+6. In the UI part of the solution/project (NOT API PART) add session management
+   see earlier writeup on how to enable sessions
+   Also add [Authorize] annotation where neccessary in the UI part.  Note
+   we had also annoted the WebApi enpoints already. Yes this is double the work!
+7. Now its time to configure Authentication inside the UI project. We have 
+   already  previously done it for API project. So here we go again.
+   1. add "app.UseAuthentication()" to Program.cs above "app.UseAuthorization()"
+   2.  add to program.cs
+      ```
+      // add authentication
+      builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+      .AddCookie(options =>
+      {
+         options.Cookie.HttpOnly = true;
+         options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+         // we needed to set LoginPath as it was goint to the razor page for
+         // identity which we ar not using yet. Our login page is "Auth/Login"
+         // "not /Identity/Login" OR "/Account/Login" 
+         options.LoginPath = "/[<Area>]/Auth/Login";
+         options.AccessDeniedPath = "/[<Area>]/Auth/AccessDenied";
+         options.SlidingExpiration = true;
+      });
+      ```

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using RealEstate.UI.ApiService;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,6 +18,30 @@ builder.Services.AddHttpClient<IApiService, ApiService>("RealEstateAPI")
     });
 builder.Services.AddScoped<IApiService, ApiService>();
 
+// add authentication
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+.AddCookie(options =>
+{
+    options.Cookie.HttpOnly = true;
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+    // we needed to set LoginPath as it was goint to the razor page for
+    // identity which we ar not using yet. Our login page is "Auth/Login"
+    // "not /Identity/Login" OR "/Account/Login" 
+    options.LoginPath = "/Customer/Auth/Login";
+    options.AccessDeniedPath = "/Customer/Auth/AccessDenied";
+    options.SlidingExpiration = true;
+});
+
+// enable sessions
+builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(100);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -32,7 +57,13 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+//add authentication
+app.UseAuthentication();
+
 app.UseAuthorization();
+
+// use sessions
+app.UseSession();
 
 app.MapControllerRoute(
     name: "default",

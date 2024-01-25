@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using RealEstate.Dto;
 using RealEstate.UI.ApiService;
 using RealEstate.UI.Models;
+using RealEstate.Utility;
 
 namespace RealEstate.UI.Areas.Customer.Controllers
 {
@@ -24,7 +25,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
         {
             var villas = new List<VillaDto>();
 
-            var response = await _api.Villas.GetAllAsync();
+            var response = await _api.Villas.GetAllAsync(HttpContext.Session.GetString(SD.SessionToken));
             var jsonData = Convert.ToString(response?.Result);
             if (response is not null && jsonData is not null)
             {

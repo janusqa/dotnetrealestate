@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using System.Text;
 using Newtonsoft.Json;
 using RealEstate.UI.Models;
@@ -17,64 +18,69 @@ namespace RealEstate.UI.Services
             _url = url;
         }
 
-        public async Task<T?> PostAsync<U>(U dto)
+        public async Task<T?> PostAsync<U>(U dto, string? token)
         {
             return await RequestAsync(
                 new ApiRequest
                 {
                     ApiMethod = SD.ApiMethod.POST,
                     Data = dto,
-                    Url = _url
+                    Url = _url,
+                    Token = token
                 }
             );
         }
 
-        public async Task<T?> PutAsync<U>(int entityId, U dto)
+        public async Task<T?> PutAsync<U>(int entityId, U dto, string? token)
         {
             return await RequestAsync(
                 new ApiRequest
                 {
                     ApiMethod = SD.ApiMethod.PUT,
                     Data = dto,
-                    Url = $"{_url}/{entityId}"
+                    Url = $"{_url}/{entityId}",
+                    Token = token
                 }
             );
         }
 
-        public async Task<T?> DeleteAsync(int entityId)
+        public async Task<T?> DeleteAsync(int entityId, string? token)
         {
             return await RequestAsync(
                 new ApiRequest
                 {
                     ApiMethod = SD.ApiMethod.DELETE,
-                    Url = $"{_url}/{entityId}"
+                    Url = $"{_url}/{entityId}",
+                    Token = token
                 }
             );
         }
 
-        public async Task<T?> GetAllAsync()
+        public async Task<T?> GetAllAsync(string? token)
         {
             return await RequestAsync(
                 new ApiRequest
                 {
                     ApiMethod = SD.ApiMethod.GET,
-                    Url = _url
+                    Url = _url,
+                    Token = token
                 }
             );
         }
 
-        public async Task<T?> GetAsync(int entityId)
+        public async Task<T?> GetAsync(int entityId, string? token)
         {
             return await RequestAsync(
                 new ApiRequest
                 {
                     ApiMethod = SD.ApiMethod.GET,
-                    Url = $"{_url}/{entityId}"
+                    Url = $"{_url}/{entityId}",
+                    Token = token
                 }
             );
         }
 
-        private async Task<T?> RequestAsync(ApiRequest apiRequest)
+        protected async Task<T?> RequestAsync(ApiRequest apiRequest)
         {
             try
             {
@@ -98,6 +104,11 @@ namespace RealEstate.UI.Services
                                 Encoding.UTF8,
                                 "application/json"
                             );
+                }
+
+                if (apiRequest.Token is not null)
+                {
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiRequest.Token);
                 }
 
                 HttpResponseMessage apiResponse = await client.SendAsync(message);

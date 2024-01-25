@@ -9,5 +9,9 @@
             PUT,
             DELETE
         }
+
+        // sessions management
+        public const string SessionToken = "JwtToken";
+
     }
 }

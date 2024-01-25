@@ -4,6 +4,7 @@ using RealEstate.DataAccess.UnitOfWork.IUnitOfWork;
 using RealEstate.Models.Api;
 using RealEstate.Models.Domain;
 using RealEstate.Dto;
+using Microsoft.AspNetCore.Authorization;
 
 namespace RealEstate.Controllers
 {
@@ -22,6 +23,10 @@ namespace RealEstate.Controllers
         }
 
         [HttpGet]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<ApiResponse>> GetAll()
         {
             try
@@ -65,6 +70,9 @@ namespace RealEstate.Controllers
         }
 
         [HttpGet("{entityId:int}", Name = "GetVillaNumber")] // indicates that this endpoint expects an entityId
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status200OK)] // these are the types of responses this action can produce
         [ProducesResponseType(StatusCodes.Status400BadRequest)] // we use them so swagger does not show responses as undocumented
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -118,6 +126,9 @@ namespace RealEstate.Controllers
         }
 
         [HttpPost] // indicates that this endpoint expects an entityId
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -168,6 +179,9 @@ namespace RealEstate.Controllers
         }
 
         [HttpDelete("{entityId:int}")] // indicates that this endpoint expects an entityId
+        [Authorize(Roles = "Custom")]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -191,6 +205,9 @@ namespace RealEstate.Controllers
         }
 
         [HttpPut("{entityId:int}")] // indicates that this endpoint expects an entityId
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Newtonsoft.Json;
@@ -5,6 +6,7 @@ using RealEstate.Dto;
 using RealEstate.UI.ApiService;
 using RealEstate.UI.Models;
 using RealEstate.UI.Models.ViewModels;
+using RealEstate.Utility;
 
 namespace RealEstate.UI.Areas.Customer.Controllers
 {
@@ -22,7 +24,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
         {
             var villaNumbers = new List<VillaNumberDto>();
 
-            var response = await _api.VillaNumbers.GetAllAsync();
+            var response = await _api.VillaNumbers.GetAllAsync(HttpContext.Session.GetString(SD.SessionToken));
             var jsonData = Convert.ToString(response?.Result);
             if (response is not null && jsonData is not null)
             {
@@ -45,12 +47,13 @@ namespace RealEstate.UI.Areas.Customer.Controllers
             return View(villaNumbers);
         }
 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create()
         {
             await Task.CompletedTask;
             IEnumerable<SelectListItem> villaListSelect = [];
 
-            var responseVillaList = await _api.Villas.GetAllAsync();
+            var responseVillaList = await _api.Villas.GetAllAsync(HttpContext.Session.GetString(SD.SessionToken));
             var jsonDataVillaList = Convert.ToString(responseVillaList?.Result);
             if (responseVillaList is not null && jsonDataVillaList is not null)
             {
@@ -70,6 +73,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
             return View(vncv);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(VillaNumberCreateView vncv)
@@ -77,7 +81,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
             if (ModelState.IsValid)
             {
                 var dto = vncv.Dto;
-                var response = await _api.VillaNumbers.PostAsync(dto);
+                var response = await _api.VillaNumbers.PostAsync(dto, HttpContext.Session.GetString(SD.SessionToken));
                 var jsonData = Convert.ToString(response?.Result);
                 if (response is not null && jsonData is not null)
                 {
@@ -101,7 +105,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
 
             IEnumerable<SelectListItem> villaListSelect = [];
 
-            var responseVillaList = await _api.Villas.GetAllAsync();
+            var responseVillaList = await _api.Villas.GetAllAsync(HttpContext.Session.GetString(SD.SessionToken));
             var jsonDataVillaList = Convert.ToString(responseVillaList?.Result);
             if (responseVillaList is not null && jsonDataVillaList is not null)
             {
@@ -116,12 +120,13 @@ namespace RealEstate.UI.Areas.Customer.Controllers
             return View(vncv);
         }
 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update(int? entityId)
         {
             if (entityId is not null && entityId > 0)
             {
 
-                var response = await _api.VillaNumbers.GetAsync(entityId.Value);
+                var response = await _api.VillaNumbers.GetAsync(entityId.Value, HttpContext.Session.GetString(SD.SessionToken));
                 var jsonData = Convert.ToString(response?.Result);
 
                 if (response is not null && jsonData is not null)
@@ -134,7 +139,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
                         {
                             IEnumerable<SelectListItem> villaListSelect = [];
 
-                            var responseVillaList = await _api.Villas.GetAllAsync();
+                            var responseVillaList = await _api.Villas.GetAllAsync(HttpContext.Session.GetString(SD.SessionToken));
                             var jsonDataVillaList = Convert.ToString(responseVillaList?.Result);
                             if (responseVillaList is not null && jsonDataVillaList is not null)
                             {
@@ -166,6 +171,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
             return NotFound();
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Update(VillaNumberUpdateView vnuv)
@@ -173,7 +179,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
             if (ModelState.IsValid)
             {
                 var dto = vnuv.Dto;
-                var response = await _api.VillaNumbers.PutAsync(dto.VillaNo, dto);
+                var response = await _api.VillaNumbers.PutAsync(dto.VillaNo, dto, HttpContext.Session.GetString(SD.SessionToken));
                 // var jsonData = Convert.ToString(response?.Result);
                 if (response is not null)
                 {
@@ -197,7 +203,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
 
             IEnumerable<SelectListItem> villaListSelect = [];
 
-            var responseVillaList = await _api.Villas.GetAllAsync();
+            var responseVillaList = await _api.Villas.GetAllAsync(HttpContext.Session.GetString(SD.SessionToken));
             var jsonDataVillaList = Convert.ToString(responseVillaList?.Result);
             if (responseVillaList is not null && jsonDataVillaList is not null)
             {
@@ -214,13 +220,14 @@ namespace RealEstate.UI.Areas.Customer.Controllers
 
 
         #region API CALLS
+        [Authorize(Roles = "Admin")]
         [HttpDelete]
         [Route("Customer/VillaNumber/Delete/{entityId}")]
         public async Task<ActionResult<ApiResponse>> Delete(int entityId)
         {
             try
             {
-                var response = await _api.VillaNumbers.DeleteAsync(entityId);
+                var response = await _api.VillaNumbers.DeleteAsync(entityId, HttpContext.Session.GetString(SD.SessionToken));
 
                 TempData["success"] = "Villa number deleted successfully!";
                 if (response is not null) return Ok(response);
