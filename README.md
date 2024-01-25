@@ -393,3 +393,42 @@ WebApi - JWt - Auth configuration
          options.SlidingExpiration = true;
       });
       ```
+
+Versioning an Api
+1. dotnet add [<API_PROJECT>] package Asp.Versioning.Mvc
+2. dotnet add [<API_PROJECT>] package Asp.Versioning.Mvc.ApiExplorer 
+3. Configure versioning in program.cs
+   1. 
+   ```
+      builder.Services.AddApiVersioning(options =>
+   {
+      options.AssumeDefaultVersionWhenUnspecified = true;
+      options.DefaultApiVersion = new ApiVersion(1, 0);
+      options.ReportApiVersion = true;
+   }).AddApiExplorer(options =>
+      {
+         options.GroupNameFormat = "'v'VVV";
+         options.SubstituteApiVersionInUrl = true;
+      });
+   ```
+   2. Now annote your controllers where necessary eg. [ApiVersion("1.0")]
+   3. As your api evolves you just add additional versons to the existing annotation
+      ```
+      [ApiVersion("1.0")]
+      [ApiVersion("2.0")]
+      ```
+      and on your actions defrienctiate which action maps to which version
+      ```
+      [MapToApiVersion(2.0)]
+      ```
+   4. now adjust the route for the controller to handle versioning
+      change ...
+      ```[Route("api/villanumbers")]```
+      to
+      ```[Route("api/v{version:apiVersion}/villanumbers")]```
+   5. for futher indepth config review in program.cs 
+      1. builder.Services.AddSwaggerGen
+      2. app.UseSwaggerUI
+   6. AFTER VERSIONING YOUR API DONT FORGET TO UPDATE YOUR CALLS TO API IN FRONT END
+      TO HANDLE THE UPDATED API URLS /v1/  or /v1/ ect
+

@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
+using Asp.Versioning;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +23,19 @@ var builder = WebApplication.CreateBuilder(args);
 // builder.Host.UseSerilog();
 
 builder.Services.AddControllers().AddNewtonsoftJson();
+
+// enable API versioning
+builder.Services.AddApiVersioning(options =>
+{
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.DefaultApiVersion = new ApiVersion(1, 0);
+    options.ReportApiVersions = true;
+}).AddApiExplorer(options =>
+{
+    options.GroupNameFormat = "'v'VVV";
+    options.SubstituteApiVersionInUrl = true;
+});
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -52,6 +66,40 @@ builder.Services.AddSwaggerGen(options =>
                 In = ParameterLocation.Header
             },
             new List<string>()
+        }
+    });
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Version = "v1.0",
+        Title = "RealEstate Api v 1.0",
+        Description = "RealEstate Management Api",
+        TermsOfService = new Uri("https://localhost:7002/Customer/Home/Privacy"),
+        Contact = new OpenApiContact
+        {
+            Name = "JanusQA",
+            Url = new Uri("https://localhost:7002"),
+        },
+        License = new OpenApiLicense
+        {
+            Name = "MIT License",
+            Url = new Uri("https://localhost:7002"),
+        }
+    });
+    options.SwaggerDoc("v2", new OpenApiInfo
+    {
+        Version = "v2.0",
+        Title = "RealEstate Api v 2.0",
+        Description = "RealEstate Management Api",
+        TermsOfService = new Uri("https://localhost:7002/Customer/Home/Privacy"),
+        Contact = new OpenApiContact
+        {
+            Name = "JanusQA",
+            Url = new Uri("https://localhost:7002"),
+        },
+        License = new OpenApiLicense
+        {
+            Name = "MIT License",
+            Url = new Uri("https://localhost:7002"),
         }
     });
     // *** END - THIS MUST MUST BE ADDED TO SUPPORT BEARER TOKENS
@@ -87,7 +135,11 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "RealEstateApi_v1");
+        options.SwaggerEndpoint("/swagger/v2/swagger.json", "RealEstateApi_v2");
+    });
 }
 
 app.UseHttpsRedirection();

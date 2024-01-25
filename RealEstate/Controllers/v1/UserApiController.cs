@@ -1,12 +1,14 @@
+using Asp.Versioning;
 using Microsoft.AspNetCore.Mvc;
 using RealEstate.DataAccess.UnitOfWork.IUnitOfWork;
 using RealEstate.Dto;
 using RealEstate.Models.Api;
 
-namespace RealEstate.Controllers
+namespace RealEstate.Controllers.v1
 {
     [ApiController]
-    [Route("api/users")]
+    [Route("api/v{version:apiVersion}/users")]
+    [ApiVersion("1.0")]
     public class UserApiController : ControllerBase
     {
         private readonly IUnitOfWork _uow;

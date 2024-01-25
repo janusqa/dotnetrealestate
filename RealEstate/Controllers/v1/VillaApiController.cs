@@ -6,14 +6,16 @@ using RealEstate.Models.Api;
 using RealEstate.Models.Domain;
 using RealEstate.Dto;
 using Microsoft.AspNetCore.Authorization;
+using Asp.Versioning;
 
-namespace RealEstate.Controllers
+namespace RealEstate.Controllers.v1
 {
     // NB: Derived from ControllerBase instead of Controller like in MVC
     // This is because we do not need access to Views which Controller Parent would provide
     // After all this is a API, i.e no UI just endpoints.
     [ApiController]
-    [Route("api/villas")]  // hard coded route name
+    [Route("api/v{version:apiVersion}/villas")]  // hard coded route name
+    [ApiVersion("1.0")]
     // [controller] automagically gets the name of the controller from the class name.
     // Use with caution
     //[Route("api/[controller]")] 
@@ -166,7 +168,7 @@ namespace RealEstate.Controllers
 
 
         [HttpDelete("{entityId:int}")] // indicates that this endpoint expects an entityId
-        [Authorize(Roles = "Custom")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]

@@ -5,11 +5,13 @@ using RealEstate.Models.Api;
 using RealEstate.Models.Domain;
 using RealEstate.Dto;
 using Microsoft.AspNetCore.Authorization;
+using Asp.Versioning;
 
-namespace RealEstate.Controllers
+namespace RealEstate.Controllers.v1
 {
     [ApiController]
-    [Route("api/villanumbers")]  // hard coded route name
+    [Route("api/v{version:apiVersion}/villanumbers")]  // hard coded route name
+    [ApiVersion("1.0")]
 
     public class VillaNumberApiController : ControllerBase
     {
@@ -125,6 +127,7 @@ namespace RealEstate.Controllers
             }
         }
 
+
         [HttpPost] // indicates that this endpoint expects an entityId
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -179,7 +182,7 @@ namespace RealEstate.Controllers
         }
 
         [HttpDelete("{entityId:int}")] // indicates that this endpoint expects an entityId
-        [Authorize(Roles = "Custom")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]

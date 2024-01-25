@@ -1,5 +1,6 @@
 using RealEstate.UI.Services;
 using RealEstate.UI.Services.IServices;
+using RealEstate.Utility;
 
 namespace RealEstate.UI.ApiService
 {
@@ -24,9 +25,9 @@ namespace RealEstate.UI.ApiService
 
             var urlBase = configuration.GetValue<string>("ServiceUrls:VillaApi");
 
-            Villas = new VillaService(_httpClient, _httpContextAccessor, $@"{urlBase}/api/villas");
-            VillaNumbers = new VillaNumberService(_httpClient, _httpContextAccessor, $@"{urlBase}/api/villanumbers");
-            LocalUsers = new AuthService(_httpClient, _httpContextAccessor, $@"{urlBase}/api/users");
+            Villas = new VillaService(_httpClient, _httpContextAccessor, $@"{urlBase}/api/{SD.ApiVersion}/villas");
+            VillaNumbers = new VillaNumberService(_httpClient, _httpContextAccessor, $@"{urlBase}/api/{SD.ApiVersion}/villanumbers");
+            LocalUsers = new AuthService(_httpClient, _httpContextAccessor, $@"{urlBase}/api/{SD.ApiVersion}/users");
 
         }
     }

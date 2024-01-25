@@ -12,6 +12,7 @@
 
         // sessions management
         public const string SessionToken = "JwtToken";
+        public const string ApiVersion = "v1";
 
     }
 }
