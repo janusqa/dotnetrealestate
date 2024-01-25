@@ -10,72 +10,73 @@ namespace RealEstate.UI.Services
     public class BaseService<T> : IBaseService<T> where T : class
     {
         private readonly IHttpClientFactory _httpClient;
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly string _url;
 
-        public BaseService(IHttpClientFactory httpClient, string url)
+        public BaseService(
+            IHttpClientFactory httpClient,
+            IHttpContextAccessor httpContextAccessor,
+            string url
+        )
         {
             _httpClient = httpClient;
+            _httpContextAccessor = httpContextAccessor;
             _url = url;
         }
 
-        public async Task<T?> PostAsync<U>(U dto, string? token)
+        public async Task<T?> PostAsync<U>(U dto)
         {
             return await RequestAsync(
                 new ApiRequest
                 {
                     ApiMethod = SD.ApiMethod.POST,
                     Data = dto,
-                    Url = _url,
-                    Token = token
+                    Url = _url
                 }
             );
         }
 
-        public async Task<T?> PutAsync<U>(int entityId, U dto, string? token)
+        public async Task<T?> PutAsync<U>(int entityId, U dto)
         {
             return await RequestAsync(
                 new ApiRequest
                 {
                     ApiMethod = SD.ApiMethod.PUT,
                     Data = dto,
-                    Url = $"{_url}/{entityId}",
-                    Token = token
+                    Url = $"{_url}/{entityId}"
                 }
             );
         }
 
-        public async Task<T?> DeleteAsync(int entityId, string? token)
+        public async Task<T?> DeleteAsync(int entityId)
         {
             return await RequestAsync(
                 new ApiRequest
                 {
                     ApiMethod = SD.ApiMethod.DELETE,
-                    Url = $"{_url}/{entityId}",
-                    Token = token
+                    Url = $"{_url}/{entityId}"
                 }
             );
         }
 
-        public async Task<T?> GetAllAsync(string? token)
+        public async Task<T?> GetAllAsync()
         {
             return await RequestAsync(
                 new ApiRequest
                 {
                     ApiMethod = SD.ApiMethod.GET,
-                    Url = _url,
-                    Token = token
+                    Url = _url
                 }
             );
         }
 
-        public async Task<T?> GetAsync(int entityId, string? token)
+        public async Task<T?> GetAsync(int entityId)
         {
             return await RequestAsync(
                 new ApiRequest
                 {
                     ApiMethod = SD.ApiMethod.GET,
-                    Url = $"{_url}/{entityId}",
-                    Token = token
+                    Url = $"{_url}/{entityId}"
                 }
             );
         }
@@ -106,9 +107,10 @@ namespace RealEstate.UI.Services
                             );
                 }
 
-                if (apiRequest.Token is not null)
+                var token = _httpContextAccessor.HttpContext?.Session.GetString(SD.SessionToken);
+                if (token is not null)
                 {
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiRequest.Token);
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 }
 
                 HttpResponseMessage apiResponse = await client.SendAsync(message);

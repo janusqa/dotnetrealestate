@@ -22,7 +22,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
         {
             var villas = new List<VillaDto>();
 
-            var response = await _api.Villas.GetAllAsync(HttpContext.Session.GetString(SD.SessionToken));
+            var response = await _api.Villas.GetAllAsync();
             var jsonData = Convert.ToString(response?.Result);
             if (response is not null && jsonData is not null)
             {
@@ -59,7 +59,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
         {
             if (ModelState.IsValid)
             {
-                var response = await _api.Villas.PostAsync(dto, HttpContext.Session.GetString(SD.SessionToken));
+                var response = await _api.Villas.PostAsync(dto);
                 var jsonData = Convert.ToString(response?.Result);
                 if (response is not null && jsonData is not null)
                 {
@@ -88,7 +88,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
         {
             if (entityId is not null && entityId > 0)
             {
-                var response = await _api.Villas.GetAsync(entityId.Value, HttpContext.Session.GetString(SD.SessionToken));
+                var response = await _api.Villas.GetAsync(entityId.Value);
                 var jsonData = Convert.ToString(response?.Result);
 
                 if (response is not null && jsonData is not null)
@@ -122,7 +122,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
         {
             if (ModelState.IsValid)
             {
-                var response = await _api.Villas.PutAsync(dto.Id, dto, HttpContext.Session.GetString(SD.SessionToken));
+                var response = await _api.Villas.PutAsync(dto.Id, dto);
                 // var jsonData = Convert.ToString(response?.Result);
                 if (response is not null)
                 {
@@ -155,7 +155,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
         {
             try
             {
-                var response = await _api.Villas.DeleteAsync(entityId, HttpContext.Session.GetString(SD.SessionToken));
+                var response = await _api.Villas.DeleteAsync(entityId);
                 if (response is not null && response.IsSuccess)
                 {
                     TempData["success"] = "Villa deleted successfully!";

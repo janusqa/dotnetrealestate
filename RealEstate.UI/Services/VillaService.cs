@@ -6,7 +6,8 @@ namespace RealEstate.UI.Services
 {
     public class VillaService : BaseService<ApiResponse>, IVillaService
     {
-        public VillaService(IHttpClientFactory httpClient, string url) : base(httpClient, url)
+        public VillaService(IHttpClientFactory httpClient, IHttpContextAccessor httpContextAccessor, string url)
+            : base(httpClient, httpContextAccessor, url)
         {
 
         }

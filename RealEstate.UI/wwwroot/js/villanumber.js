@@ -16,7 +16,6 @@ const Delete = (url) => {
             })
                 .then((res) => res.json())
                 .then((data) => {
-                    console.log(data);
                     if (data.isSuccess) {
                         // TODO
                         location.reload();
@@ -24,15 +23,19 @@ const Delete = (url) => {
                     } else {
                         // TODO
                         // toastr.error('Something went worng. Please try again.');
-                        if (data.errorMessages != null)
-                            for (message of data.errorMessages)
+                        if (data.errorMessages != null) {
+                            for (message of data.errorMessages) {
                                 console.log(message);
+                            }
+                        }
+                        location.reload();
                     }
                 })
                 .catch((error) => {
                     // TODO
                     // toastr.error(error.message);
                     console.log(error.message);
+                    location.reload();
                 });
         }
     });

@@ -24,7 +24,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
         {
             var villaNumbers = new List<VillaNumberDto>();
 
-            var response = await _api.VillaNumbers.GetAllAsync(HttpContext.Session.GetString(SD.SessionToken));
+            var response = await _api.VillaNumbers.GetAllAsync();
             var jsonData = Convert.ToString(response?.Result);
             if (response is not null && jsonData is not null)
             {
@@ -53,7 +53,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
             await Task.CompletedTask;
             IEnumerable<SelectListItem> villaListSelect = [];
 
-            var responseVillaList = await _api.Villas.GetAllAsync(HttpContext.Session.GetString(SD.SessionToken));
+            var responseVillaList = await _api.Villas.GetAllAsync();
             var jsonDataVillaList = Convert.ToString(responseVillaList?.Result);
             if (responseVillaList is not null && jsonDataVillaList is not null)
             {
@@ -81,7 +81,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
             if (ModelState.IsValid)
             {
                 var dto = vncv.Dto;
-                var response = await _api.VillaNumbers.PostAsync(dto, HttpContext.Session.GetString(SD.SessionToken));
+                var response = await _api.VillaNumbers.PostAsync(dto);
                 var jsonData = Convert.ToString(response?.Result);
                 if (response is not null && jsonData is not null)
                 {
@@ -105,7 +105,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
 
             IEnumerable<SelectListItem> villaListSelect = [];
 
-            var responseVillaList = await _api.Villas.GetAllAsync(HttpContext.Session.GetString(SD.SessionToken));
+            var responseVillaList = await _api.Villas.GetAllAsync();
             var jsonDataVillaList = Convert.ToString(responseVillaList?.Result);
             if (responseVillaList is not null && jsonDataVillaList is not null)
             {
@@ -126,7 +126,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
             if (entityId is not null && entityId > 0)
             {
 
-                var response = await _api.VillaNumbers.GetAsync(entityId.Value, HttpContext.Session.GetString(SD.SessionToken));
+                var response = await _api.VillaNumbers.GetAsync(entityId.Value);
                 var jsonData = Convert.ToString(response?.Result);
 
                 if (response is not null && jsonData is not null)
@@ -139,7 +139,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
                         {
                             IEnumerable<SelectListItem> villaListSelect = [];
 
-                            var responseVillaList = await _api.Villas.GetAllAsync(HttpContext.Session.GetString(SD.SessionToken));
+                            var responseVillaList = await _api.Villas.GetAllAsync();
                             var jsonDataVillaList = Convert.ToString(responseVillaList?.Result);
                             if (responseVillaList is not null && jsonDataVillaList is not null)
                             {
@@ -179,7 +179,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
             if (ModelState.IsValid)
             {
                 var dto = vnuv.Dto;
-                var response = await _api.VillaNumbers.PutAsync(dto.VillaNo, dto, HttpContext.Session.GetString(SD.SessionToken));
+                var response = await _api.VillaNumbers.PutAsync(dto.VillaNo, dto);
                 // var jsonData = Convert.ToString(response?.Result);
                 if (response is not null)
                 {
@@ -203,7 +203,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
 
             IEnumerable<SelectListItem> villaListSelect = [];
 
-            var responseVillaList = await _api.Villas.GetAllAsync(HttpContext.Session.GetString(SD.SessionToken));
+            var responseVillaList = await _api.Villas.GetAllAsync();
             var jsonDataVillaList = Convert.ToString(responseVillaList?.Result);
             if (responseVillaList is not null && jsonDataVillaList is not null)
             {
@@ -227,10 +227,12 @@ namespace RealEstate.UI.Areas.Customer.Controllers
         {
             try
             {
-                var response = await _api.VillaNumbers.DeleteAsync(entityId, HttpContext.Session.GetString(SD.SessionToken));
-
-                TempData["success"] = "Villa number deleted successfully!";
-                if (response is not null) return Ok(response);
+                var response = await _api.VillaNumbers.DeleteAsync(entityId);
+                if (response is not null && response.IsSuccess)
+                {
+                    TempData["success"] = "Villa number deleted successfully!";
+                    return Ok(response);
+                }
             }
             catch (Exception ex)
             {

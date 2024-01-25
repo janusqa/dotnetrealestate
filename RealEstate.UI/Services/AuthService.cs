@@ -7,7 +7,8 @@ namespace RealEstate.UI.Services
     public class AuthService : BaseService<ApiResponse>, IAuthService
     {
         private readonly string _url;
-        public AuthService(IHttpClientFactory httpClient, string url) : base(httpClient, url)
+        public AuthService(IHttpClientFactory httpClient, IHttpContextAccessor httpContextAccessor, string url)
+            : base(httpClient, httpContextAccessor, url)
         {
             _url = url;
         }
