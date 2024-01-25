@@ -432,3 +432,41 @@ Versioning an Api
    6. AFTER VERSIONING YOUR API DONT FORGET TO UPDATE YOUR CALLS TO API IN FRONT END
       TO HANDLE THE UPDATED API URLS /v1/  or /v1/ ect
 
+Enabling Caching for API
+----
+1. In progarm.cs of API project in services section add 
+   ```
+   builder.Services.AddResponseCaching();
+   ```
+2. in pipeline section of program.cs add
+   ```
+   app.UseResponseCaching();
+   ```
+3. Go to the action in a controller you want to apply caching too and add 
+   annotations.
+   ```
+   [ResponseCache(Duration = 30)] // cache the results for 30s
+   ```
+4. An example of disabling cacheing for an action
+   ```
+   [ResponseCache(Location =ResponseCacheLocation.None, NoStore =true)] 
+   ```
+5. Setting up general rules like most of your actions should be cached for 30s
+   1. Rather than annoting each action with the ResponseCache we can create a 
+      cache profile. It is set as options in the "builder.Services.Addcontrolles"
+      eg.
+      ```
+      builder.Services.AddControllers(options =>
+      {
+         options.CacheProfiles.Add(
+            "Default30",
+            new CacheProfile
+            {
+                  Duration = 30
+            }
+         );
+      }).AddNewtonsoftJson();
+      ```
+      Note other cacheing options can be set for "Default30". Here we only use
+      "Duration" option.
+      Now on your contorller actions [ResponseCache(CacheProfileName="Default30")]

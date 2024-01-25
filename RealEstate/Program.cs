@@ -9,6 +9,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
 using Asp.Versioning;
+using Microsoft.Net.Http.Headers;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,7 +24,23 @@ var builder = WebApplication.CreateBuilder(args);
 //     .CreateLogger();
 // builder.Host.UseSerilog();
 
-builder.Services.AddControllers().AddNewtonsoftJson();
+builder.Services.AddControllers(options =>
+{
+    options.CacheProfiles.Add(
+        "Default30",
+        new CacheProfile
+        {
+            Duration = 30
+        }
+    );
+}).AddNewtonsoftJson();
+
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+);
+
+// Enable caching
+builder.Services.AddResponseCaching();
 
 // enable API versioning
 builder.Services.AddApiVersioning(options =>
@@ -104,9 +122,6 @@ builder.Services.AddSwaggerGen(options =>
     });
     // *** END - THIS MUST MUST BE ADDED TO SUPPORT BEARER TOKENS
 });
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
-);
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IDBInitilizer, DBInitilizer>();
@@ -143,6 +158,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// enable caching
+app.UseResponseCaching();
 
 app.UseAuthentication(); // when using Identity or roll your own jwt based auth
 app.UseAuthorization();

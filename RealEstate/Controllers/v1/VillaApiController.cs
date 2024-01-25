@@ -45,7 +45,10 @@ namespace RealEstate.Controllers.v1
         }
 
         [HttpGet]
-        [Authorize]
+        [ResponseCache(CacheProfileName = "Default30")] // cache the results for 30s. Using a cache profile
+        // [ResponseCache(Duration = 30)] // explictly setting a cache option duration
+        // [ResponseCache(Location =ResponseCacheLocation.None, NoStore =true)] // this disables cacheing for a route
+        // [Authorize]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status200OK)]
