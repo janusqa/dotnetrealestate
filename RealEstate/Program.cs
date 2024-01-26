@@ -43,6 +43,32 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
 
+// add custom services
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IDBInitilizer, DBInitilizer>();
+
+// add (jwt, could be other types of auth too) authentication
+var JwtAccessSecret = builder.Configuration.GetValue<string>("ApiSettings:JwtAccessSecret") ?? "";
+builder.Services.AddAuthentication(auth =>
+{
+    auth.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    auth.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(auth =>
+{
+    auth.RequireHttpsMetadata = false;
+    auth.SaveToken = true;
+    auth.TokenValidationParameters = new TokenValidationParameters
+    {
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(JwtAccessSecret)),
+        ValidateIssuerSigningKey = true,
+        ValidateLifetime = true,
+        ValidateIssuer = false,
+        ValidateAudience = false
+    };
+});
+
+// add authorization
+builder.Services.AddAuthorization();
 
 // Enable caching
 builder.Services.AddResponseCaching();
@@ -128,28 +154,10 @@ builder.Services.AddSwaggerGen(options =>
     // *** END - THIS MUST MUST BE ADDED TO SUPPORT BEARER TOKENS
 });
 
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddScoped<IDBInitilizer, DBInitilizer>();
-
-var JwtAccessSecret = builder.Configuration.GetValue<string>("ApiSettings:JwtAccessSecret") ?? "";
-builder.Services.AddAuthentication(auth =>
-{
-    auth.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    auth.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer(auth =>
-{
-    auth.RequireHttpsMetadata = false;
-    auth.SaveToken = true;
-    auth.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(JwtAccessSecret)),
-        ValidateIssuer = false,
-        ValidateAudience = false
-    };
-});
-
 var app = builder.Build();
+
+//seed the db
+await SeedDatabase();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -169,8 +177,6 @@ app.UseResponseCaching();
 
 app.UseAuthentication(); // when using Identity or roll your own jwt based auth
 app.UseAuthorization();
-
-await SeedDatabase();
 
 app.MapControllers();
 

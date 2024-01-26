@@ -63,6 +63,7 @@ namespace RealEstate.DataAccess.Repository
 
             var jwtTokenHandler = new JwtSecurityTokenHandler();
             var jwtAccessKey = Encoding.ASCII.GetBytes(_jwtAccessSecret);
+
             var jwtTokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new Claim[] {

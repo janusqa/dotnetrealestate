@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.JsonWebTokens;
 using Newtonsoft.Json;
 using RealEstate.Dto;
 using RealEstate.UI.ApiService;
@@ -45,14 +46,31 @@ namespace RealEstate.UI.Areas.Customer.Controllers
                             // ON CLIENT TO ALLOW UI TO REMEMBER WE ARE LOGGED IN.
                             // TO PASS TO API MODIFY methods in services (IBaseServices) to take 
                             // a token parameter
-                            var identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
-                            identity.AddClaim(new Claim(ClaimTypes.Name, user.User.UserName));
-                            identity.AddClaim(new Claim(ClaimTypes.Role, user.User.Role));
-                            var principal = new ClaimsPrincipal(identity);
-                            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
-                            HttpContext.Session.SetString(SD.SessionToken, user.Token);
-                            return RedirectToAction(nameof(Index), "Home");
+                            // Although we are receving a user object we do not want to receive claims
+                            // from there as we dont really have to return a user object from api
+                            // we should really be only returning a token. But hey this is a demo
+                            // Let us now retrive the claims from the Token.
+
+                            var jwtTokenHandler = new JsonWebTokenHandler();
+                            var jwtToken = jwtTokenHandler.ReadJsonWebToken(user.Token);
+
+                            var identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
+                            try
+                            {
+                                identity.AddClaim(new Claim(ClaimTypes.Name, jwtToken.Claims.First(c => c.Type == "unique_name").Value));
+                                identity.AddClaim(new Claim(ClaimTypes.Role, jwtToken.Claims.First(c => c.Type == "role").Value));
+                                var principal = new ClaimsPrincipal(identity);
+                                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+
+                                HttpContext.Session.SetString(SD.SessionToken, user.Token);
+                                return RedirectToAction(nameof(Index), "Home");
+                            }
+                            catch (ArgumentNullException ex)
+                            {
+                                Console.WriteLine($"Jwt Error: {ex.Message}");
+                                return RedirectToAction(nameof(AccessDenied), "Auth");
+                            }
                         }
                     }
                     else

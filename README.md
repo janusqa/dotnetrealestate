@@ -359,8 +359,9 @@ WebApi - JWt - Auth configuration
       auth.SaveToken = true;
       auth.TokenValidationParameters = new TokenValidationParameters
       {
-         ValidateIssuerSigningKey = true,
          IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(JwtAccessSecret)),
+         ValidateIssuerSigningKey = true,
+         ValidateLifetime = true,
          ValidateIssuer = false,
          ValidateAudience = false
       };
@@ -374,10 +375,15 @@ WebApi - JWt - Auth configuration
    see earlier writeup on how to enable sessions
    Also add [Authorize] annotation where neccessary in the UI part.  Note
    we had also annoted the WebApi enpoints already. Yes this is double the work!
-7. Now its time to configure Authentication inside the UI project. We have 
+   
+UI - jwt- auth configuration
+---
+   Now its time to configure Authentication inside the UI project. We have 
    already  previously done it for API project. So here we go again.
-   1. add "app.UseAuthentication()" to Program.cs above "app.UseAuthorization()"
-   2.  add to program.cs
+   1. dotnet add package Microsoft.IdentityModel.JsonWebTokens (note this replaces
+      System.IdentityModel.Tokens.Jwt)
+   2. add "app.UseAuthentication()" to Program.cs above "app.UseAuthorization()"
+   3.  add to program.cs
       ```
       // add authentication
       builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
