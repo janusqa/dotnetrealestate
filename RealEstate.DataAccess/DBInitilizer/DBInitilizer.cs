@@ -2,6 +2,8 @@ using RealEstate.DataAccess.Data;
 using RealEstate.DataAccess.UnitOfWork.IUnitOfWork;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
+using RealEstate.Utility;
+using Microsoft.AspNetCore.Identity;
 
 namespace RealEstate.DataAccess.DBInitilizer
 {
@@ -9,14 +11,17 @@ namespace RealEstate.DataAccess.DBInitilizer
     {
         private readonly ApplicationDbContext _db;
         private readonly IUnitOfWork _uow;
+        private readonly RoleManager<IdentityRole> _rm;
 
         public DBInitilizer(
             ApplicationDbContext db,
-            IUnitOfWork uow
+            IUnitOfWork uow,
+            RoleManager<IdentityRole> rm
         )
         {
             _db = db;
             _uow = uow;
+            _rm = rm;
         }
 
         public async Task Initilize()
@@ -72,6 +77,22 @@ namespace RealEstate.DataAccess.DBInitilizer
                 await _uow.Villas.ExecuteSqlAsync(Trigger, []);
             }
             transaction.Commit();
+
+            // 2. Create Roles if the do not already exist
+            var roles = new List<string> {
+                SD.Role_Customer,
+                SD.Role_Admin,
+                SD.Role_Employee,
+            };
+
+            var RolesToCreate = roles
+                .Where(r => !_rm.RoleExistsAsync(r).GetAwaiter().GetResult())
+                .ToList();
+
+            foreach (var task in RolesToCreate)
+            {
+                await _rm.CreateAsync(new IdentityRole(task));
+            }
 
             return;
         }

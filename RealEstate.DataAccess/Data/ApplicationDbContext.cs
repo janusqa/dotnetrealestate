@@ -1,10 +1,12 @@
 using RealEstate.Models.Domain;
 using Microsoft.EntityFrameworkCore;
+using RealEstate.Models.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace RealEstate.DataAccess.Data
 {
     // To configure Identity we changed DBContext to IdentityDbContext<ApplicationUser>
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
@@ -15,6 +17,8 @@ namespace RealEstate.DataAccess.Data
         public DbSet<VillaNumber> VillaNumbers { get; set; }
 
         public DbSet<LocalUser> LocalUsers { get; set; }
+
+        public DbSet<ApplicationUser> ApplicationUsers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -8,5 +8,6 @@ namespace RealEstate.UI.ApiService
         IVillaService Villas { get; init; }
         IVillaNumberService VillaNumbers { get; init; }
         IAuthService LocalUsers { get; init; }
+        IAuthService ApplicationUsers { get; init; }
     }
 }

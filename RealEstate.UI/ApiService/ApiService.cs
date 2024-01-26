@@ -13,6 +13,7 @@ namespace RealEstate.UI.ApiService
         public IVillaService Villas { get; init; }
         public IVillaNumberService VillaNumbers { get; init; }
         public IAuthService LocalUsers { get; init; }
+        public IAuthService ApplicationUsers { get; init; }
 
 
         public ApiService(
@@ -28,6 +29,7 @@ namespace RealEstate.UI.ApiService
             Villas = new VillaService(_httpClient, _httpContextAccessor, $@"{urlBase}/api/{SD.ApiVersion}/villas");
             VillaNumbers = new VillaNumberService(_httpClient, _httpContextAccessor, $@"{urlBase}/api/{SD.ApiVersion}/villanumbers");
             LocalUsers = new AuthService(_httpClient, _httpContextAccessor, $@"{urlBase}/api/{SD.ApiVersion}/users");
+            ApplicationUsers = new AuthService(_httpClient, _httpContextAccessor, $@"{urlBase}/api/{SD.ApiVersion}/users");
 
         }
     }

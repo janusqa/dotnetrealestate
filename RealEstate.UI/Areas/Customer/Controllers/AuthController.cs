@@ -27,17 +27,17 @@ namespace RealEstate.UI.Areas.Customer.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(LocalUserLoginRequestDto dto)
+        public async Task<IActionResult> Login(ApplicationUserLoginRequestDto dto)
         {
             if (ModelState.IsValid)
             {
-                var response = await _api.LocalUsers.LoginAsync(dto);
+                var response = await _api.ApplicationUsers.LoginAsync(dto);
                 var jsonData = Convert.ToString(response?.Result);
                 if (response is not null && jsonData is not null)
                 {
                     if (response.IsSuccess)
                     {
-                        var user = JsonConvert.DeserializeObject<LocalUserLoginResponseDto>(jsonData);
+                        var user = JsonConvert.DeserializeObject<ApplicationUserLoginResponseDto>(jsonData);
                         if (user is not null && user.Token is not null)
                         {
                             // save the session so it can be automatically sent on each request
@@ -77,17 +77,17 @@ namespace RealEstate.UI.Areas.Customer.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Register(CreateLocalUserDto dto)
+        public async Task<IActionResult> Register(CreateApplicationUserDto dto)
         {
             if (ModelState.IsValid)
             {
-                var response = await _api.LocalUsers.RegisterAsync(dto);
+                var response = await _api.ApplicationUsers.RegisterAsync(dto);
                 var jsonData = Convert.ToString(response?.Result);
                 if (response is not null && jsonData is not null)
                 {
                     if (response.IsSuccess)
                     {
-                        var user = JsonConvert.DeserializeObject<LocalUserLoginResponseDto>(jsonData);
+                        var user = JsonConvert.DeserializeObject<ApplicationUserLoginResponseDto>(jsonData);
                         if (user is not null && user.Token is not null)
                         {
                             HttpContext.Session.SetString(SD.SessionToken, user.Token);

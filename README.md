@@ -470,3 +470,47 @@ Enabling Caching for API
       Note other cacheing options can be set for "Default30". Here we only use
       "Duration" option.
       Now on your contorller actions [ResponseCache(CacheProfileName="Default30")]
+
+
+Getting data from a request
+---
+1. Getting data from a request querystring
+   https://localhost/api/resources?myval=1
+   ```
+   public IActionResult test([FromQuery] int myval)
+   ```
+   can also name the query param eg.
+   public IActionResult test([FromQuery(Name = "ThisIsMyVal")] int myval)
+2. Getting data from a request body
+   Sent usually via form submission or by some sort of programatic fetch
+   ```
+   public IActionResult test([FromBody] int myval)
+   ```
+3. Getting data from path
+   https://localhost/api/resources/1
+   ```
+   [HttpGet("{myval:int}")]
+   public IActionResult test(int myval)
+   ```   
+
+Replacing our roll your own auth with .Net Identity for a WEBAPI
+---
+1. Create a ApplicationUser model and inherit from IdentityUser
+2. dotnet add XXX.DataAccess package Microsoft.AspNetCore.Identity.EntityFrameworkCore
+3. dotnet add XXX.MainProject package Microsoft.AspNetCore.Identity.EntityFrameworkCore
+4. Add to programs.cs in services
+   ```
+   builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
+   ```
+5. In ApplicationDbContext.cs inherit from  "IdentityDbContext" instead of "DbContext"
+6. In ApplicactionDbContext.cs add 
+   ```
+   public DbSet<ApplicationUser> ApplicationUsers { get; set; }
+   ```
+   This is so we can access the .Net Identity Users table via the db context, like
+   the rest of our tables.
+7. Add the below to the "OnModelCreating" method in "ApplicationDbContext.cs"
+   ```
+   base.OnModelCreating(modelBuilder);
+   ```
+8. . Add a migration, and update database to generate the users table

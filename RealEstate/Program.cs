@@ -11,6 +11,8 @@ using Microsoft.OpenApi.Models;
 using Asp.Versioning;
 using Microsoft.Net.Http.Headers;
 using Microsoft.AspNetCore.Mvc;
+using RealEstate.Models.Identity;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,6 +40,9 @@ builder.Services.AddControllers(options =>
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
+
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
+
 
 // Enable caching
 builder.Services.AddResponseCaching();
