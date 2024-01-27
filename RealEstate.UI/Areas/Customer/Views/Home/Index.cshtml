@@ -11,8 +11,8 @@
         <div class="p-4" col-md-12 col-lg-6">
             <div class="row p-3" style="border-radius:20px; border:1px solid #ff6a00">
                 <div class="col-4">
-                    <img class="d-block w-100" style="border-radius:20px;" asp-append-version="true" src="@villa.ImageUrl"
-                        alt="First Slide" />
+                    <img class="d-block w-100" style="border-radius:20px;" asp-append-version="true"
+                        src='@($"{SD.ApiBaseUrl}/{villa.ImageUrl}")' alt="First Slide" />
                 </div>
                 <div class="col-8">
                     <p class="card-title text-warning" style="font-size:xx-large">@villa.Name</p>

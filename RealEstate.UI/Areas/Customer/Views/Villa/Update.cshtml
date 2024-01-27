@@ -68,7 +68,8 @@
                 </div>
             </div>
             <div class="col-2">
-                <img src="@Model.ImageUrl" asp-append-version="true" class="w-100" alt="@Model.Name" />
+                <img src='@($"{SD.ApiBaseUrl}/{Model.ImageUrl}")' asp-append-version="true" class="w-100"
+                    alt="@Model.Name" />
             </div>
         </div>
     </div>

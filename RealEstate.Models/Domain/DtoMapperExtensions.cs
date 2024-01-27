@@ -12,38 +12,39 @@ namespace RealEstate.Models.Domain
         public static VillaDto ToDto(this Villa villa)
         {
             return new VillaDto(
-                villa.Id,
-                villa.Name,
-                villa.Details,
-                villa.Rate,
-                villa.Sqft,
-                villa.Occupancy,
-                villa.ImageUrl,
-                villa.Amenity
+                Id: villa.Id,
+                Name: villa.Name,
+                Details: villa.Details,
+                Rate: villa.Rate,
+                Sqft: villa.Sqft,
+                Occupancy: villa.Occupancy,
+                ImageUrl: villa.ImageUrl,
+                Amenity: villa.Amenity
             );
         }
 
         public static UpdateVillaDto ToUpdateDto(this Villa villa)
         {
             return new UpdateVillaDto(
-                villa.Id,
-                villa.Name,
-                villa.Details,
-                villa.Rate,
-                villa.Sqft,
-                villa.Occupancy,
-                villa.ImageUrl,
-                villa.Amenity
+                Id: villa.Id,
+                Name: villa.Name,
+                Details: villa.Details,
+                Rate: villa.Rate,
+                Sqft: villa.Sqft,
+                Occupancy: villa.Occupancy,
+                ImageUrl: villa.ImageUrl,
+                Image: null,
+                Amenity: villa.Amenity
             );
         }
 
         public static VillaNumberDto ToDto(this VillaNumber villaNumber)
         {
             return new VillaNumberDto(
-                villaNumber.VillaNo,
-                villaNumber.VillaId,
-                villaNumber.SpecialDetails,
-                villaNumber.Villa?.ToDto()
+                VillaNo: villaNumber.VillaNo,
+                VillaId: villaNumber.VillaId,
+                SpecialDetails: villaNumber.SpecialDetails,
+                VillaDto: villaNumber.Villa?.ToDto()
             );
         }
     }

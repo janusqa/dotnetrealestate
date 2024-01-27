@@ -117,7 +117,7 @@ namespace RealEstate.UI.Services
                         foreach (var item in apiRequest.Data.GetType().GetProperties())
                         {
                             var value = item.GetValue(apiRequest.Data);
-                            if (value is FormFile file)
+                            if (value is IFormFile file)
                             {
                                 if (file is not null)
                                 {

@@ -15,6 +15,7 @@
 
         // API Versioning
         public const string ApiVersion = "v2";
+        public const string ApiBaseUrl = "https://localhost:7001";
 
         // Role Constants
         public const string Role_Customer = "Customer";

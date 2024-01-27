@@ -22,9 +22,10 @@ namespace RealEstate.Controllers.v2
     public class VillaApiController : ControllerBase
     {
         private readonly IUnitOfWork _uow;
+        private readonly IWebHostEnvironment _whe; // for handling file uploads
         private readonly ILogger<VillaApiController> _logger;
 
-        public VillaApiController(IUnitOfWork uow, ILogger<VillaApiController> logger)
+        public VillaApiController(IUnitOfWork uow, IWebHostEnvironment whe, ILogger<VillaApiController> logger)
         {
             // Example of using the logger via dependancy injection
             // we can use the built in logger or up the ante with 
@@ -41,6 +42,7 @@ namespace RealEstate.Controllers.v2
             // builder.Host.UseSerilog();
             //```
             _uow = uow;
+            _whe = whe;
             _logger = logger;
         }
 
@@ -106,15 +108,16 @@ namespace RealEstate.Controllers.v2
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<ApiResponse>> Post([FromBody] CreateVillaDto villaDto)
+        // changed from "FromBody" to "FromForm" so we can extra uploaded files.
+        // public async Task<ActionResult<ApiResponse>> Post([FromBody] CreateVillaDto villaDto)
+        public async Task<ActionResult<ApiResponse>> Post([FromForm] CreateVillaDto createVillaDto)
         {
-
             // custom validations with modelstate
             try
             {
                 var villaCount = (await _uow.Villas.SqlQueryAsync<int>($@"
                     SELECT COUNT(Id) FROM dbo.Villas WHERE LOWER(Name) = LOWER(@Name)
-                ", [new SqlParameter("Name", villaDto.Name)])).FirstOrDefault();
+                ", [new SqlParameter("Name", createVillaDto.Name)])).FirstOrDefault();
 
                 if (villaCount > 0)
                 {
@@ -140,7 +143,44 @@ namespace RealEstate.Controllers.v2
             if (!ModelState.IsValid) return BadRequest(new ApiResponse { Result = ModelState, StatusCode = System.Net.HttpStatusCode.BadRequest });
 
             // lets do some simple validation
-            if (villaDto is null) return BadRequest(new ApiResponse { StatusCode = System.Net.HttpStatusCode.BadRequest });
+            if (createVillaDto is null) return BadRequest(new ApiResponse { StatusCode = System.Net.HttpStatusCode.BadRequest });
+
+            // handle image upload
+            var ImageUrl = createVillaDto.ImageUrl ?? "https://placehold.co/600x400";
+            try
+            {
+                string wwwRootPath = _whe.WebRootPath;
+                if (createVillaDto.Image is not null)
+                {
+                    var fileName = $"{Guid.NewGuid()}{Path.GetExtension(createVillaDto.Image.FileName)}";
+                    string urlPath = $@"images/villas";
+                    string filePath = Path.Combine(wwwRootPath, urlPath);
+
+                    if (createVillaDto.ImageUrl is not null && createVillaDto.ImageUrl != "")
+                    {
+                        var existingImage = Path.Combine(wwwRootPath, createVillaDto.ImageUrl[1..]);
+                        if (System.IO.File.Exists(existingImage)) System.IO.File.Delete(existingImage);
+                    }
+
+                    using (FileStream writer = new FileStream(Path.Combine(filePath, fileName), FileMode.Create))
+                    {
+                        createVillaDto.Image.CopyTo(writer);
+                    }
+
+                    ImageUrl = $@"/{urlPath}/{fileName}";
+                }
+                else
+                {
+                    ImageUrl =
+                         createVillaDto.ImageUrl is null || createVillaDto.ImageUrl == ""
+                         ? ""
+                         : createVillaDto.ImageUrl;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ImageUploadError: {ex.Message}");
+            }
 
             try
             {
@@ -150,18 +190,18 @@ namespace RealEstate.Controllers.v2
                     OUTPUT INSERTED.Id
                         VALUES (@Name, @Details, @ImageUrl, @Occupancy, @Rate, @Sqft, @Amenity)
                 ", [
-                    new SqlParameter("Name", villaDto.Name),
-                    new SqlParameter("Details", villaDto.Details ?? (object)DBNull.Value),
-                    new SqlParameter("ImageUrl", villaDto.ImageUrl ?? (object)DBNull.Value),
-                    new SqlParameter("Occupancy", villaDto.Occupancy),
-                    new SqlParameter("Rate", villaDto.Rate),
-                    new SqlParameter("Sqft", villaDto.Sqft),
-                    new SqlParameter("Amenity", villaDto.Amenity ?? (object)DBNull.Value),
+                    new SqlParameter("Name", createVillaDto.Name),
+                    new SqlParameter("Details", createVillaDto.Details ?? (object)DBNull.Value),
+                    new SqlParameter("ImageUrl", ImageUrl),
+                    new SqlParameter("Occupancy", createVillaDto.Occupancy),
+                    new SqlParameter("Rate", createVillaDto.Rate),
+                    new SqlParameter("Sqft", createVillaDto.Sqft),
+                    new SqlParameter("Amenity", createVillaDto.Amenity ?? (object)DBNull.Value),
                 ])).FirstOrDefault();
 
                 if (Id == 0) return new ObjectResult(new ApiResponse { StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
 
-                return CreatedAtRoute("GetVilla", new { entityId = Id }, new ApiResponse { Result = villaDto, IsSuccess = true, StatusCode = System.Net.HttpStatusCode.Created });
+                return CreatedAtRoute("GetVilla", new { entityId = Id }, new ApiResponse { Result = createVillaDto, IsSuccess = true, StatusCode = System.Net.HttpStatusCode.Created });
             }
             catch (Exception ex)
             {
@@ -184,6 +224,20 @@ namespace RealEstate.Controllers.v2
 
             try
             {
+                var ImageUrlToDelete = (await _uow.Villas.SqlQueryAsync<string>(@$"
+                    SELECT 
+                        ImageUrl
+                    FROM dbo.Villas
+                    WHERE (Id = @Id);
+                ", [new SqlParameter("Id", entityId)]))?.FirstOrDefault();
+
+                if (ImageUrlToDelete is not null && ImageUrlToDelete != "")
+                {
+                    string wwwRootPath = _whe.WebRootPath;
+                    string existingImage = Path.Combine(wwwRootPath, ImageUrlToDelete[1..]);
+                    if (System.IO.File.Exists(existingImage)) System.IO.File.Delete(existingImage);
+                }
+
                 await _uow.Villas.ExecuteSqlAsync($@"
                     DELETE FROM dbo.Villas WHERE Id = @Id
                 ", [new SqlParameter("Id", entityId)]);
@@ -204,10 +258,47 @@ namespace RealEstate.Controllers.v2
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> Put(int entityId, [FromBody] UpdateVillaDto villaDto) // not returning a type so can use IActionResult as return type
+        public async Task<IActionResult> Put(int entityId, [FromForm] UpdateVillaDto updateVillaDto) // not returning a type so can use IActionResult as return type
         {
             if (entityId < 1) return BadRequest(new ApiResponse { StatusCode = System.Net.HttpStatusCode.BadRequest, ErrorMessages = ["Invalid Entity Id"] });
-            if (villaDto is null || villaDto.Id != entityId) return BadRequest(new ApiResponse { StatusCode = System.Net.HttpStatusCode.BadRequest, ErrorMessages = ["Invalid Entity Id"] });
+            if (updateVillaDto is null || updateVillaDto.Id != entityId) return BadRequest(new ApiResponse { StatusCode = System.Net.HttpStatusCode.BadRequest, ErrorMessages = ["Invalid Entity Id"] });
+
+            // handle image upload
+            var ImageUrl = updateVillaDto.ImageUrl ?? "https://placehold.co/600x400";
+            try
+            {
+                string wwwRootPath = _whe.WebRootPath;
+                if (updateVillaDto.Image is not null)
+                {
+                    var fileName = $"{Guid.NewGuid()}{Path.GetExtension(updateVillaDto.Image.FileName)}";
+                    string urlPath = $@"images/villas";
+                    string filePath = Path.Combine(wwwRootPath, urlPath);
+
+                    if (updateVillaDto.ImageUrl is not null && updateVillaDto.ImageUrl != "")
+                    {
+                        var existingImage = Path.Combine(wwwRootPath, updateVillaDto.ImageUrl[1..]);
+                        if (System.IO.File.Exists(existingImage)) System.IO.File.Delete(existingImage);
+                    }
+
+                    using (FileStream writer = new FileStream(Path.Combine(filePath, fileName), FileMode.Create))
+                    {
+                        updateVillaDto.Image.CopyTo(writer);
+                    }
+
+                    ImageUrl = $@"/{urlPath}/{fileName}";
+                }
+                else
+                {
+                    ImageUrl =
+                        updateVillaDto.ImageUrl is null || updateVillaDto.ImageUrl == ""
+                        ? ""
+                        : updateVillaDto.ImageUrl;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ImageUploadError: {ex.Message}");
+            }
 
             try
             {
@@ -224,13 +315,13 @@ namespace RealEstate.Controllers.v2
                     WHERE Id = @Id
                 ", [
                     new SqlParameter("Id", entityId),
-                    new SqlParameter("Name", villaDto.Name),
-                    new SqlParameter("Details", villaDto.Details ?? (object)DBNull.Value),
-                    new SqlParameter("ImageUrl", villaDto.ImageUrl),
-                    new SqlParameter("Occupancy", villaDto.Occupancy),
-                    new SqlParameter("Rate", villaDto.Rate),
-                    new SqlParameter("Sqft", villaDto.Sqft),
-                    new SqlParameter("Amenity", villaDto.Amenity ?? (object)DBNull.Value),
+                    new SqlParameter("Name", updateVillaDto.Name),
+                    new SqlParameter("Details", updateVillaDto.Details ?? (object)DBNull.Value),
+                    new SqlParameter("ImageUrl", ImageUrl),
+                    new SqlParameter("Occupancy", updateVillaDto.Occupancy),
+                    new SqlParameter("Rate", updateVillaDto.Rate),
+                    new SqlParameter("Sqft", updateVillaDto.Sqft),
+                    new SqlParameter("Amenity", updateVillaDto.Amenity ?? (object)DBNull.Value),
                 ]);
             }
             catch (Exception ex)

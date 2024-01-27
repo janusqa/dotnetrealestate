@@ -12,45 +12,47 @@ namespace RealEstate.UI.Models
         public static CreateVillaDto ToCreateDto(this VillaDto villaDto)
         {
             return new CreateVillaDto(
-                villaDto.Name,
-                villaDto.Details,
-                villaDto.Rate,
-                villaDto.Sqft,
-                villaDto.Occupancy,
-                villaDto.ImageUrl,
-                villaDto.Amenity
+                Name: villaDto.Name,
+                Details: villaDto.Details,
+                Rate: villaDto.Rate,
+                Sqft: villaDto.Sqft,
+                Occupancy: villaDto.Occupancy,
+                ImageUrl: villaDto.ImageUrl,
+                Image: null,
+                Amenity: villaDto.Amenity
             );
         }
 
         public static UpdateVillaDto ToUpdateDto(this VillaDto villaDto)
         {
             return new UpdateVillaDto(
-                villaDto.Id,
-                villaDto.Name,
-                villaDto.Details,
-                villaDto.Rate,
-                villaDto.Sqft,
-                villaDto.Occupancy,
-                villaDto.ImageUrl,
-                villaDto.Amenity
+                Id: villaDto.Id,
+                Name: villaDto.Name,
+                Details: villaDto.Details,
+                Rate: villaDto.Rate,
+                Sqft: villaDto.Sqft,
+                Occupancy: villaDto.Occupancy,
+                ImageUrl: villaDto.ImageUrl,
+                Image: null,
+                Amenity: villaDto.Amenity
             );
         }
 
         public static CreateVillaNumberDto ToCreateDto(this VillaNumberDto villaNumberDto)
         {
             return new CreateVillaNumberDto(
-                villaNumberDto.VillaNo,
-                villaNumberDto.VillaId,
-                villaNumberDto.SpecialDetails
+                VillaNo: villaNumberDto.VillaNo,
+                VillaId: villaNumberDto.VillaId,
+                SpecialDetails: villaNumberDto.SpecialDetails
             );
         }
 
         public static UpdateVillaNumberDto ToUpdateDto(this VillaNumberDto villaNumberDto)
         {
             return new UpdateVillaNumberDto(
-                villaNumberDto.VillaNo,
-                villaNumberDto.VillaId,
-                villaNumberDto.SpecialDetails
+                VillaNo: villaNumberDto.VillaNo,
+                VillaId: villaNumberDto.VillaId,
+                SpecialDetails: villaNumberDto.SpecialDetails
             );
         }
     }

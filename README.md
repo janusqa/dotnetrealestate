@@ -415,6 +415,7 @@ Versioning an Api
       {
          options.GroupNameFormat = "'v'VVV";
          options.SubstituteApiVersionInUrl = true;
+         options.AddApiVersionParametersWhenVersionNeutral = true;
       });
    ```
    2. Now annote your controllers where necessary eg. [ApiVersion("1.0")]
@@ -503,6 +504,10 @@ Getting data from a request
    [HttpGet("{myval:int}")]
    public IActionResult test([FromRoute] int myval)
    ``` 
+4. Getting form data
+5. ```
+   public IActionResult test([FromForm] MyFormData myval)
+   ``````
 
 Replacing our roll your own auth with .Net Identity for a WEBAPI
 ---

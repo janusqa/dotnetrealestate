@@ -5,7 +5,7 @@ using RealEstate.DataAccess.UnitOfWork.IUnitOfWork;
 using RealEstate.Dto;
 using RealEstate.Models.Api;
 
-namespace RealEstate.Controllers.v1
+namespace RealEstate.Controllers
 {
     [ApiController]
     [Route("api/v{version:apiVersion}/users")]

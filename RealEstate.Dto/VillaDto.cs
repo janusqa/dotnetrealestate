@@ -6,9 +6,7 @@
 // So in our controller we gaurd the info the model returns
 // Via a DTO.
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace RealEstate.Dto
 {
@@ -30,6 +28,7 @@ namespace RealEstate.Dto
         int Sqft,
         int Occupancy,
         string? ImageUrl,
+        IFormFile? Image,
         string? Amenity
     );
 
@@ -41,6 +40,7 @@ namespace RealEstate.Dto
         [Required] int Sqft,
         [Required] int Occupancy,
         string? ImageUrl,
+        IFormFile? Image,
         string? Amenity
     );
 }
