@@ -34,4 +34,9 @@
     <ProjectReference Include="..\RealEstate.Dto\RealEstate.Dto.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- extends watching group to include *.js files -->
+    <Watch Include="wwwroot\images\*" Exclude="true" />
+  </ItemGroup>
+
 </Project>

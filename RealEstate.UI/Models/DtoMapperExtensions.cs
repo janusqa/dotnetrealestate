@@ -31,7 +31,7 @@ namespace RealEstate.UI.Models
                 villaDto.Rate,
                 villaDto.Sqft,
                 villaDto.Occupancy,
-                villaDto.ImageUrl ?? "",
+                villaDto.ImageUrl,
                 villaDto.Amenity
             );
         }

@@ -170,6 +170,9 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+// enable static files in wwwroot
+app.UseStaticFiles();
+
 app.UseHttpsRedirection();
 
 // enable caching

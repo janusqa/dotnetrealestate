@@ -525,3 +525,9 @@ Replacing our roll your own auth with .Net Identity for a WEBAPI
    base.OnModelCreating(modelBuilder);
    ```
 8. . Add a migration, and update database to generate the users table
+
+Image uploads
+---
+1. Enable static files in api project
+   add "app.UseStaticFiles()" to program.cs
+2. 

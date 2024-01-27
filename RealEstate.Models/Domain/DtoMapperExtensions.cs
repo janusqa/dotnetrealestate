@@ -32,7 +32,7 @@ namespace RealEstate.Models.Domain
                 villa.Rate,
                 villa.Sqft,
                 villa.Occupancy,
-                villa.ImageUrl ?? "",
+                villa.ImageUrl,
                 villa.Amenity
             );
         }

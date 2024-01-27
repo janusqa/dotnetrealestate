@@ -31,7 +31,8 @@ namespace RealEstate.UI.Services
                 {
                     ApiMethod = SD.ApiMethod.POST,
                     Data = dto,
-                    Url = _url
+                    Url = _url,
+                    ContentType = SD.ContentType.MultiPartFormData
                 }
             );
         }
@@ -43,7 +44,8 @@ namespace RealEstate.UI.Services
                 {
                     ApiMethod = SD.ApiMethod.PUT,
                     Data = dto,
-                    Url = $"{_url}/{entityId}"
+                    Url = $"{_url}/{entityId}",
+                    ContentType = SD.ContentType.MultiPartFormData
                 }
             );
         }
@@ -86,8 +88,16 @@ namespace RealEstate.UI.Services
             try
             {
                 var client = _httpClient.CreateClient("RealEstateAPI");
+
                 HttpRequestMessage message = new HttpRequestMessage();
-                message.Headers.Add("Accept", "application/json");
+
+                var contentType = apiRequest.ContentType switch
+                {
+                    SD.ContentType.MultiPartFormData => "*/*",
+                    _ => "application/json"
+                };
+                message.Headers.Add("Accept", contentType);
+
                 message.Method = apiRequest.ApiMethod switch
                 {
                     SD.ApiMethod.POST => HttpMethod.Post,
@@ -95,16 +105,43 @@ namespace RealEstate.UI.Services
                     SD.ApiMethod.DELETE => HttpMethod.Delete,
                     _ => HttpMethod.Get,
                 };
+
                 message.RequestUri = new Uri(apiRequest.Url);
+
                 if (apiRequest.Data != null)
                 {
-                    message.Content = new StringContent(
-                        JsonConvert
-                            .SerializeObject(
-                                apiRequest.Data),
-                                Encoding.UTF8,
-                                "application/json"
-                            );
+                    if (apiRequest.ContentType == SD.ContentType.MultiPartFormData)
+                    {
+                        // form multi-part
+                        var content = new MultipartFormDataContent();
+                        foreach (var item in apiRequest.Data.GetType().GetProperties())
+                        {
+                            var value = item.GetValue(apiRequest.Data);
+                            if (value is FormFile file)
+                            {
+                                if (file is not null)
+                                {
+                                    content.Add(new StreamContent(file.OpenReadStream()), item.Name, file.Name);
+                                }
+                            }
+                            else
+                            {
+                                content.Add(new StringContent(value?.ToString() ?? ""), item.Name);
+                            }
+                        }
+                        message.Content = content;
+                    }
+                    else
+                    {
+                        // json 
+                        message.Content = new StringContent(
+                            JsonConvert
+                                .SerializeObject(
+                                    apiRequest.Data),
+                                    Encoding.UTF8,
+                                    "application/json"
+                                );
+                    }
                 }
 
                 var token = _httpContextAccessor.HttpContext?.Session.GetString(SD.SessionToken);
