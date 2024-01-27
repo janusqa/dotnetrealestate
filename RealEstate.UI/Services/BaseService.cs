@@ -117,11 +117,12 @@ namespace RealEstate.UI.Services
                         foreach (var item in apiRequest.Data.GetType().GetProperties())
                         {
                             var value = item.GetValue(apiRequest.Data);
-                            if (value is IFormFile file)
+                            if (value is IFormFile)
                             {
+                                var file = (IFormFile)value;
                                 if (file is not null)
                                 {
-                                    content.Add(new StreamContent(file.OpenReadStream()), item.Name, file.Name);
+                                    content.Add(new StreamContent(file.OpenReadStream()), item.Name, file.FileName);
                                 }
                             }
                             else

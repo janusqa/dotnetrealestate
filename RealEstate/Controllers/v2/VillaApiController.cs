@@ -209,47 +209,6 @@ namespace RealEstate.Controllers.v2
             }
         }
 
-
-        [HttpDelete("{entityId:int}")] // indicates that this endpoint expects an entityId
-        [Authorize(Roles = "Admin")]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<ApiResponse>> Delete(int entityId) // not returning a type so can use IActionResult as return type
-        {
-            if (entityId < 1) return BadRequest(new ApiResponse { StatusCode = System.Net.HttpStatusCode.BadRequest });
-
-            try
-            {
-                var ImageUrlToDelete = (await _uow.Villas.SqlQueryAsync<string>(@$"
-                    SELECT 
-                        ImageUrl
-                    FROM dbo.Villas
-                    WHERE (Id = @Id);
-                ", [new SqlParameter("Id", entityId)]))?.FirstOrDefault();
-
-                if (ImageUrlToDelete is not null && ImageUrlToDelete != "")
-                {
-                    string wwwRootPath = _whe.WebRootPath;
-                    string existingImage = Path.Combine(wwwRootPath, ImageUrlToDelete[1..]);
-                    if (System.IO.File.Exists(existingImage)) System.IO.File.Delete(existingImage);
-                }
-
-                await _uow.Villas.ExecuteSqlAsync($@"
-                    DELETE FROM dbo.Villas WHERE Id = @Id
-                ", [new SqlParameter("Id", entityId)]);
-            }
-            catch (Exception ex)
-            {
-                return new ObjectResult(new ApiResponse { ErrorMessages = [ex.Message], StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
-            }
-
-            return Ok(new ApiResponse { IsSuccess = true, StatusCode = System.Net.HttpStatusCode.NoContent });
-        }
-
         [HttpPut("{entityId:int}")] // indicates that this endpoint expects an entityId
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -331,6 +290,47 @@ namespace RealEstate.Controllers.v2
 
             return Ok(new ApiResponse { IsSuccess = true, StatusCode = System.Net.HttpStatusCode.NoContent });
         }
+
+        [HttpDelete("{entityId:int}")] // indicates that this endpoint expects an entityId
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<ApiResponse>> Delete(int entityId) // not returning a type so can use IActionResult as return type
+        {
+            if (entityId < 1) return BadRequest(new ApiResponse { StatusCode = System.Net.HttpStatusCode.BadRequest });
+
+            try
+            {
+                var ImageUrlToDelete = (await _uow.Villas.SqlQueryAsync<string>(@$"
+                    SELECT 
+                        ImageUrl
+                    FROM dbo.Villas
+                    WHERE (Id = @Id);
+                ", [new SqlParameter("Id", entityId)]))?.FirstOrDefault();
+
+                if (ImageUrlToDelete is not null && ImageUrlToDelete != "")
+                {
+                    string wwwRootPath = _whe.WebRootPath;
+                    string existingImage = Path.Combine(wwwRootPath, ImageUrlToDelete[1..]);
+                    if (System.IO.File.Exists(existingImage)) System.IO.File.Delete(existingImage);
+                }
+
+                await _uow.Villas.ExecuteSqlAsync($@"
+                    DELETE FROM dbo.Villas WHERE Id = @Id
+                ", [new SqlParameter("Id", entityId)]);
+            }
+            catch (Exception ex)
+            {
+                return new ObjectResult(new ApiResponse { ErrorMessages = [ex.Message], StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
+            }
+
+            return Ok(new ApiResponse { IsSuccess = true, StatusCode = System.Net.HttpStatusCode.NoContent });
+        }
+
 
         // FOR DEMO PURPOSES to demostrate patch.  Better to just use PUT in most cases
         // To support patch request must install two packages and the configure
