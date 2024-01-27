@@ -4,7 +4,6 @@ using Newtonsoft.Json;
 using RealEstate.Dto;
 using RealEstate.UI.ApiService;
 using RealEstate.UI.Models;
-using RealEstate.Utility;
 
 namespace RealEstate.UI.Areas.Customer.Controllers
 {

@@ -498,6 +498,11 @@ Getting data from a request
    [HttpGet("{myval:int}")]
    public IActionResult test(int myval)
    ```   
+   or
+      ```
+   [HttpGet("{myval:int}")]
+   public IActionResult test([FromRoute] int myval)
+   ``` 
 
 Replacing our roll your own auth with .Net Identity for a WEBAPI
 ---
