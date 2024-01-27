@@ -37,7 +37,6 @@ namespace RealEstate.Dto
     );
 
     public record ApplicationUserLoginResponseDto(
-        [Required] ApplicationUserDto User,
         [Required] string Token
     );
 

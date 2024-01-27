@@ -145,7 +145,7 @@ namespace RealEstate.UI.Services
                     }
                 }
 
-                var token = _httpContextAccessor.HttpContext?.Session.GetString(SD.SessionToken);
+                var token = _httpContextAccessor.HttpContext?.Session.GetString(SD.JwtAccessToken);
                 if (token is not null)
                 {
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);

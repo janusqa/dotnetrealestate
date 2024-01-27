@@ -64,7 +64,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
                                 var principal = new ClaimsPrincipal(identity);
                                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
-                                HttpContext.Session.SetString(SD.SessionToken, user.Token);
+                                HttpContext.Session.SetString(SD.JwtAccessToken, user.Token);
                                 return RedirectToAction(nameof(Index), "Home");
                             }
                             catch (ArgumentNullException ex)
@@ -116,7 +116,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
                         var user = JsonConvert.DeserializeObject<ApplicationUserLoginResponseDto>(jsonData);
                         if (user is not null && user.Token is not null)
                         {
-                            HttpContext.Session.SetString(SD.SessionToken, user.Token);
+                            HttpContext.Session.SetString(SD.JwtAccessToken, user.Token);
                             return RedirectToAction(nameof(Index), "Home");
                         }
                     }
@@ -144,7 +144,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync();
-            HttpContext.Session.SetString(SD.SessionToken, "");
+            HttpContext.Session.SetString(SD.JwtAccessToken, "");
             return RedirectToAction(nameof(Login), "Auth");
         }
 
