@@ -9,7 +9,8 @@ namespace RealEstate.Controllers.v1
 {
     [ApiController]
     [Route("api/v{version:apiVersion}/users")]
-    [ApiVersion("1.0")]
+    // [ApiVersion("1.0")]
+    [ApiVersionNeutral]
     public class UserApiController : ControllerBase
     {
         private readonly IUnitOfWork _uow;

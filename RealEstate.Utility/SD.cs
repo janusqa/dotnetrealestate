@@ -14,7 +14,7 @@
         public const string SessionToken = "JwtToken";
 
         // API Versioning
-        public const string ApiVersion = "v1";
+        public const string ApiVersion = "v2";
 
         // Role Constants
         public const string Role_Customer = "Customer";

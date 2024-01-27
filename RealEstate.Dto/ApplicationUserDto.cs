@@ -12,14 +12,14 @@ namespace RealEstate.Dto
     public record ApplicationUserDto(
         string Id,
         [Required][EmailAddress(ErrorMessage = "Invalid email address.")][MaxLength(30)] string UserName,
-        [Required][MaxLength(30)] string Role,
+        [Required][MaxLength(36)] string Role,
         [MaxLength(30)] string? Name
     );
 
     public record CreateApplicationUserDto(
         [Required][EmailAddress(ErrorMessage = "Invalid email address.")][MaxLength(30)] string UserName,
         [Required][MaxLength(30)] string Password,
-        [MaxLength(30)] string? Role,
+        [MaxLength(36)] string? Role,
         [MaxLength(30)] string? Name
     );
 
@@ -27,7 +27,7 @@ namespace RealEstate.Dto
         string Id,
         [Required][EmailAddress(ErrorMessage = "Invalid email address.")][MaxLength(30)] string UserName,
         [Required][MaxLength(30)] string Password,
-        [Required][MaxLength(30)] string Role,
+        [Required][MaxLength(36)] string Role,
         [MaxLength(30)] string? Name
     );
 

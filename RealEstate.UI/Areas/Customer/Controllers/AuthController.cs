@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Newtonsoft.Json;
 using RealEstate.Dto;
@@ -90,6 +91,13 @@ namespace RealEstate.UI.Areas.Customer.Controllers
         [HttpGet]
         public IActionResult Register()
         {
+            var roleList = new List<SelectListItem> {
+                new SelectListItem{Text=SD.Role_Admin, Value=SD.Role_Admin},
+                new SelectListItem{Text=SD.Role_Customer, Value=SD.Role_Customer}
+            };
+
+            ViewBag.RoleList = roleList;
+
             return View();
         }
 
@@ -121,6 +129,13 @@ namespace RealEstate.UI.Areas.Customer.Controllers
                     }
                 }
             }
+
+            var roleList = new List<SelectListItem> {
+                new SelectListItem{Text=SD.Role_Admin, Value=SD.Role_Admin},
+                new SelectListItem{Text=SD.Role_Customer, Value=SD.Role_Customer}
+            };
+
+            ViewBag.RoleList = roleList;
 
             return View(dto);
         }
