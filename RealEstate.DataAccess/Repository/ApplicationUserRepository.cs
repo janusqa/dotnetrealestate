@@ -41,7 +41,7 @@ namespace RealEstate.DataAccess.Repository
             return user is null;
         }
 
-        public async Task<ApplicationUserLoginResponseDto?> Login(ApplicationUserLoginRequestDto loginRequestDto)
+        public async Task<TokenDto?> Login(ApplicationUserLoginRequestDto loginRequestDto)
         {
             // Note this is for demo only so no password hassing applied
             // in realworld scenario, please use somthing like bcrypt
@@ -75,12 +75,12 @@ namespace RealEstate.DataAccess.Repository
             };
             var jwtAccessToken = jwtTokenHandler.WriteToken(jwtTokenHandler.CreateToken(jwtTokenDescriptor));
 
-            return new ApplicationUserLoginResponseDto(
+            return new TokenDto(
                 jwtAccessToken
             );
         }
 
-        public async Task<ApplicationUserLoginResponseDto?> Register(CreateApplicationUserDto userDto)
+        public async Task<TokenDto?> Register(CreateApplicationUserDto userDto)
         {
             if (await IsUinqueUser(userDto.UserName))
             {

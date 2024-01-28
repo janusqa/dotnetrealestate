@@ -7,7 +7,7 @@ namespace RealEstate.DataAccess.Repository
     public interface IApplicationUserRepository : IRepository<ApplicationUser>
     {
         Task<bool> IsUinqueUser(string UserName);
-        Task<ApplicationUserLoginResponseDto?> Login(ApplicationUserLoginRequestDto loginRequestDto);
-        Task<ApplicationUserLoginResponseDto?> Register(CreateApplicationUserDto userDto);
+        Task<TokenDto?> Login(ApplicationUserLoginRequestDto loginRequestDto);
+        Task<TokenDto?> Register(CreateApplicationUserDto userDto);
     }
 }

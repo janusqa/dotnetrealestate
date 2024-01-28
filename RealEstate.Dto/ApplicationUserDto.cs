@@ -35,9 +35,4 @@ namespace RealEstate.Dto
         [Required][EmailAddress(ErrorMessage = "Invalid email address.")][MaxLength(30)] string UserName,
         [Required][MaxLength(30)] string Password
     );
-
-    public record ApplicationUserLoginResponseDto(
-        [Required] string Token
-    );
-
 }

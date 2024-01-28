@@ -39,7 +39,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
                 {
                     if (response.IsSuccess)
                     {
-                        var user = JsonConvert.DeserializeObject<ApplicationUserLoginResponseDto>(jsonData);
+                        var user = JsonConvert.DeserializeObject<TokenDto>(jsonData);
                         if (user is not null && user.Token is not null)
                         {
                             // save the session so it can be automatically sent on each request
@@ -113,7 +113,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
                 {
                     if (response.IsSuccess)
                     {
-                        var user = JsonConvert.DeserializeObject<ApplicationUserLoginResponseDto>(jsonData);
+                        var user = JsonConvert.DeserializeObject<TokenDto>(jsonData);
                         if (user is not null && user.Token is not null)
                         {
                             HttpContext.Session.SetString(SD.JwtAccessToken, user.Token);
