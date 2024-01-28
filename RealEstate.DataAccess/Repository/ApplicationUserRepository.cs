@@ -2,7 +2,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using RealEstate.DataAccess.Data;
@@ -57,23 +56,7 @@ namespace RealEstate.DataAccess.Repository
 
             if (!isValidCredentials) return null;
 
-            var roles = await _um.GetRolesAsync(user);
-
-            if (roles.Count < 1) return null;
-
-            var jwtTokenHandler = new JwtSecurityTokenHandler();
-            var jwtAccessKey = Encoding.ASCII.GetBytes(_jwtAccessSecret);
-
-            var jwtTokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(new Claim[] {
-                    new Claim(ClaimTypes.Name, user.UserName.ToString()),
-                    new Claim(ClaimTypes.Role, roles.First())
-                }),
-                Expires = DateTime.UtcNow.AddDays(7),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(jwtAccessKey), SecurityAlgorithms.HmacSha256Signature)
-            };
-            var jwtAccessToken = jwtTokenHandler.WriteToken(jwtTokenHandler.CreateToken(jwtTokenDescriptor));
+            var jwtAccessToken = await GetJwtToken(user);
 
             return jwtAccessToken is not null ? new TokenDto(
                 AccessToken: jwtAccessToken
@@ -108,6 +91,30 @@ namespace RealEstate.DataAccess.Repository
             }
 
             return null;
+        }
+
+        private async Task<string?> GetJwtToken(ApplicationUser user)
+        {
+            if (user.UserName is null) return null;
+
+            var roles = await _um.GetRolesAsync(user);
+            if (roles.Count < 1) return null;
+
+            var jwtTokenHandler = new JwtSecurityTokenHandler();
+            var jwtKey = Encoding.ASCII.GetBytes(_jwtAccessSecret);
+
+            var jwtTokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new Claim[] {
+                    new Claim(ClaimTypes.Name, user.UserName.ToString()),
+                    new Claim(ClaimTypes.Role, roles.First())
+                }),
+                Expires = DateTime.UtcNow.AddDays(7),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(jwtKey), SecurityAlgorithms.HmacSha256Signature)
+            };
+            var jwtToken = jwtTokenHandler.WriteToken(jwtTokenHandler.CreateToken(jwtTokenDescriptor));
+
+            return jwtToken;
         }
 
         private ApplicationUser CreateUser()
