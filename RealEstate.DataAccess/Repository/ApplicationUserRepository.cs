@@ -75,9 +75,9 @@ namespace RealEstate.DataAccess.Repository
             };
             var jwtAccessToken = jwtTokenHandler.WriteToken(jwtTokenHandler.CreateToken(jwtTokenDescriptor));
 
-            return new TokenDto(
-                jwtAccessToken
-            );
+            return jwtAccessToken is not null ? new TokenDto(
+                AccessToken: jwtAccessToken
+            ) : null;
         }
 
         public async Task<TokenDto?> Register(CreateApplicationUserDto userDto)

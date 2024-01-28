@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using RealEstate.UI.ApiService;
+using RealEstate.UI.Services;
+using RealEstate.UI.Services.IServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,7 +18,9 @@ builder.Services.AddHttpClient<IApiService, ApiService>("RealEstateAPI")
         };
         return handler;
     });
+
 builder.Services.AddScoped<IApiService, ApiService>();
+builder.Services.AddScoped<ITokenProvider, TokenProvider>();
 
 // add authentication
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

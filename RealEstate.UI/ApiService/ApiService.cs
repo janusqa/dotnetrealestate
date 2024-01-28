@@ -7,7 +7,7 @@ namespace RealEstate.UI.ApiService
     public class ApiService : IApiService
     {
         private readonly IHttpClientFactory _httpClient;
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ITokenProvider _tokenProvider;
 
 
         public IVillaService Villas { get; init; }
@@ -18,18 +18,18 @@ namespace RealEstate.UI.ApiService
 
         public ApiService(
             IHttpClientFactory httpClient,
-            IHttpContextAccessor httpContextAccessor,
+            ITokenProvider tokenProvider,
             IConfiguration configuration)
         {
             _httpClient = httpClient;
-            _httpContextAccessor = httpContextAccessor;
+            _tokenProvider = tokenProvider;
 
             var urlBase = configuration.GetValue<string>("ServiceUrls:VillaApi");
 
-            Villas = new VillaService(_httpClient, _httpContextAccessor, $@"{urlBase}/api/{SD.ApiVersion}/villas");
-            VillaNumbers = new VillaNumberService(_httpClient, _httpContextAccessor, $@"{urlBase}/api/{SD.ApiVersion}/villanumbers");
-            LocalUsers = new AuthService(_httpClient, _httpContextAccessor, $@"{urlBase}/api/{SD.ApiVersion}/users");
-            ApplicationUsers = new AuthService(_httpClient, _httpContextAccessor, $@"{urlBase}/api/{SD.ApiVersion}/users");
+            Villas = new VillaService(_httpClient, _tokenProvider, $@"{urlBase}/api/{SD.ApiVersion}/villas");
+            VillaNumbers = new VillaNumberService(_httpClient, _tokenProvider, $@"{urlBase}/api/{SD.ApiVersion}/villanumbers");
+            LocalUsers = new AuthService(_httpClient, _tokenProvider, $@"{urlBase}/api/{SD.ApiVersion}/users");
+            ApplicationUsers = new AuthService(_httpClient, _tokenProvider, $@"{urlBase}/api/{SD.ApiVersion}/users");
 
         }
     }

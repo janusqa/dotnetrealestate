@@ -10,21 +10,21 @@ namespace RealEstate.UI.Services
     public class BaseService<T> : IBaseService<T> where T : class
     {
         private readonly IHttpClientFactory _httpClient;
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ITokenProvider _tokenProvider;
         private readonly string _url;
 
         public BaseService(
             IHttpClientFactory httpClient,
-            IHttpContextAccessor httpContextAccessor,
+            ITokenProvider tokenProvider,
             string url
         )
         {
             _httpClient = httpClient;
-            _httpContextAccessor = httpContextAccessor;
+            _tokenProvider = tokenProvider;
             _url = url;
         }
 
-        public async Task<T?> PostAsync<U>(U dto)
+        public async Task<T?> PostAsync<U>(U dto, SD.ContentType contentType)
         {
             return await RequestAsync(
                 new ApiRequest
@@ -32,12 +32,12 @@ namespace RealEstate.UI.Services
                     ApiMethod = SD.ApiMethod.POST,
                     Data = dto,
                     Url = _url,
-                    ContentType = SD.ContentType.MultiPartFormData
+                    ContentType = contentType
                 }
             );
         }
 
-        public async Task<T?> PutAsync<U>(int entityId, U dto)
+        public async Task<T?> PutAsync<U>(int entityId, U dto, SD.ContentType contentType)
         {
             return await RequestAsync(
                 new ApiRequest
@@ -45,7 +45,7 @@ namespace RealEstate.UI.Services
                     ApiMethod = SD.ApiMethod.PUT,
                     Data = dto,
                     Url = $"{_url}/{entityId}",
-                    ContentType = SD.ContentType.MultiPartFormData
+                    ContentType = contentType
                 }
             );
         }
@@ -145,10 +145,10 @@ namespace RealEstate.UI.Services
                     }
                 }
 
-                var token = _httpContextAccessor.HttpContext?.Session.GetString(SD.JwtAccessToken);
+                var token = _tokenProvider.GetToken();
                 if (token is not null)
                 {
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
                 }
 
                 HttpResponseMessage apiResponse = await client.SendAsync(message);

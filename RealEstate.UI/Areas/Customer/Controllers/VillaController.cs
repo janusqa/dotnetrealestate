@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using RealEstate.Dto;
 using RealEstate.UI.ApiService;
 using RealEstate.UI.Models;
+using RealEstate.Utility;
 
 namespace RealEstate.UI.Areas.Customer.Controllers
 {
@@ -58,7 +59,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
         {
             if (ModelState.IsValid)
             {
-                var response = await _api.Villas.PostAsync(dto);
+                var response = await _api.Villas.PostAsync(dto, SD.ContentType.MultiPartFormData);
                 var jsonData = Convert.ToString(response?.Result);
                 if (response is not null && jsonData is not null)
                 {
@@ -121,7 +122,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
         {
             if (ModelState.IsValid)
             {
-                var response = await _api.Villas.PutAsync(dto.Id, dto);
+                var response = await _api.Villas.PutAsync(dto.Id, dto, SD.ContentType.MultiPartFormData);
                 // var jsonData = Convert.ToString(response?.Result);
                 if (response is not null)
                 {

@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.JsonWebTokens;
 using Newtonsoft.Json;
 using RealEstate.Dto;
 using RealEstate.UI.ApiService;
+using RealEstate.UI.Services.IServices;
 using RealEstate.Utility;
 
 namespace RealEstate.UI.Areas.Customer.Controllers
@@ -16,9 +17,11 @@ namespace RealEstate.UI.Areas.Customer.Controllers
     {
 
         private readonly IApiService _api;
-        public AuthController(IApiService api)
+        private readonly ITokenProvider _tokenProvider;
+        public AuthController(IApiService api, ITokenProvider tokenProvider)
         {
             _api = api;
+            _tokenProvider = tokenProvider;
         }
 
         [HttpGet]
@@ -39,8 +42,8 @@ namespace RealEstate.UI.Areas.Customer.Controllers
                 {
                     if (response.IsSuccess)
                     {
-                        var user = JsonConvert.DeserializeObject<TokenDto>(jsonData);
-                        if (user is not null && user.Token is not null)
+                        var jwt = JsonConvert.DeserializeObject<TokenDto>(jsonData);
+                        if (jwt is not null && jwt.AccessToken is not null)
                         {
                             // save the session so it can be automatically sent on each request
                             // NOTE THIS DOES NOT SEND TOKEN TO API. IT JUST SAVES TOKEN 
@@ -54,7 +57,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
                             // Let us now retrive the claims from the Token.
 
                             var jwtTokenHandler = new JsonWebTokenHandler();
-                            var jwtToken = jwtTokenHandler.ReadJsonWebToken(user.Token);
+                            var jwtToken = jwtTokenHandler.ReadJsonWebToken(jwt.AccessToken);
 
                             var identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
                             try
@@ -64,7 +67,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
                                 var principal = new ClaimsPrincipal(identity);
                                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
-                                HttpContext.Session.SetString(SD.JwtAccessToken, user.Token);
+                                _tokenProvider.SetToken(jwt);
                                 return RedirectToAction(nameof(Index), "Home");
                             }
                             catch (ArgumentNullException ex)
@@ -113,10 +116,10 @@ namespace RealEstate.UI.Areas.Customer.Controllers
                 {
                     if (response.IsSuccess)
                     {
-                        var user = JsonConvert.DeserializeObject<TokenDto>(jsonData);
-                        if (user is not null && user.Token is not null)
+                        var jwt = JsonConvert.DeserializeObject<TokenDto>(jsonData);
+                        if (jwt is not null && jwt.AccessToken is not null)
                         {
-                            HttpContext.Session.SetString(SD.JwtAccessToken, user.Token);
+                            _tokenProvider.SetToken(jwt);
                             return RedirectToAction(nameof(Index), "Home");
                         }
                     }
@@ -144,7 +147,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync();
-            HttpContext.Session.SetString(SD.JwtAccessToken, "");
+            _tokenProvider.ClearToken();
             return RedirectToAction(nameof(Login), "Auth");
         }
 
