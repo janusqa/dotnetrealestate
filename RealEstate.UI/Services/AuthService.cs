@@ -21,7 +21,7 @@ namespace RealEstate.UI.Services
                     ApiMethod = SD.ApiMethod.POST,
                     Data = dto,
                     Url = $"{_url}/login"
-                });
+                }, withBearer: false);
         }
 
         public async Task<ApiResponse?> RegisterAsync<U>(U dto)
@@ -32,7 +32,7 @@ namespace RealEstate.UI.Services
                     ApiMethod = SD.ApiMethod.POST,
                     Data = dto,
                     Url = $"{_url}/register"
-                });
+                }, withBearer: false);
         }
     }
 }

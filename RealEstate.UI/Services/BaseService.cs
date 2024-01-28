@@ -83,7 +83,7 @@ namespace RealEstate.UI.Services
             );
         }
 
-        protected async Task<T?> RequestAsync(ApiRequest apiRequest)
+        protected async Task<T?> RequestAsync(ApiRequest apiRequest, bool withBearer = true)
         {
             try
             {
@@ -145,10 +145,13 @@ namespace RealEstate.UI.Services
                     }
                 }
 
-                var token = _tokenProvider.GetToken();
-                if (token is not null)
+                if (withBearer)
                 {
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
+                    var token = _tokenProvider.GetToken();
+                    if (token is not null)
+                    {
+                        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
+                    }
                 }
 
                 HttpResponseMessage apiResponse = await client.SendAsync(message);
