@@ -9,7 +9,6 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
 using Asp.Versioning;
-using Microsoft.Net.Http.Headers;
 using Microsoft.AspNetCore.Mvc;
 using RealEstate.Models.Identity;
 using Microsoft.AspNetCore.Identity;

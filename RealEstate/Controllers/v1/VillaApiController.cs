@@ -62,11 +62,11 @@ namespace RealEstate.Controllers.v1
                     SELECT * FROM dbo.Villas
                 ", [])).Select(v => v.ToDto()).ToList();
 
-                return Ok(new ApiResponse { Result = villas, IsSuccess = true, StatusCode = System.Net.HttpStatusCode.OK });
+                return Ok(new ApiResponse { IsSuccess = true, Result = villas, StatusCode = System.Net.HttpStatusCode.OK });
             }
             catch (Exception ex)
             {
-                return new ObjectResult(new ApiResponse { ErrorMessages = [ex.Message], StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
+                return new ObjectResult(new ApiResponse { IsSuccess = false, ErrorMessages = [ex.Message], StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
             }
         }
 
@@ -81,7 +81,7 @@ namespace RealEstate.Controllers.v1
         public async Task<ActionResult<ApiResponse>> Get(int entityId)
         {
             // lets do some simple validation
-            if (entityId == 0) return BadRequest(new ApiResponse { StatusCode = System.Net.HttpStatusCode.BadRequest });
+            if (entityId == 0) return BadRequest(new ApiResponse { IsSuccess = false, StatusCode = System.Net.HttpStatusCode.BadRequest });
 
             try
             {
@@ -89,13 +89,13 @@ namespace RealEstate.Controllers.v1
                     SELECT * FROM dbo.Villas WHERE Id = @Id
                 ", [new SqlParameter("Id", entityId)])).FirstOrDefault();
 
-                if (villa is null) return NotFound(new ApiResponse { StatusCode = System.Net.HttpStatusCode.NotFound });
+                if (villa is null) return NotFound(new ApiResponse { IsSuccess = false, StatusCode = System.Net.HttpStatusCode.NotFound });
 
-                return Ok(new ApiResponse { Result = villa.ToDto(), IsSuccess = true, StatusCode = System.Net.HttpStatusCode.OK });
+                return Ok(new ApiResponse { IsSuccess = true, Result = villa.ToDto(), StatusCode = System.Net.HttpStatusCode.OK });
             }
             catch (Exception ex)
             {
-                return new ObjectResult(new ApiResponse { ErrorMessages = [ex.Message], StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
+                return new ObjectResult(new ApiResponse { IsSuccess = false, ErrorMessages = [ex.Message], StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
             }
         }
 
@@ -123,6 +123,7 @@ namespace RealEstate.Controllers.v1
                     ModelState.AddModelError("DuplicateError", "Villa already exists!");
                     var response = new ApiResponse
                     {
+                        IsSuccess = false,
                         Result = ModelState,
                         StatusCode = System.Net.HttpStatusCode.BadRequest,
                         ErrorMessages = ["Villa already exists!"]
@@ -132,15 +133,15 @@ namespace RealEstate.Controllers.v1
             }
             catch (Exception ex)
             {
-                return new ObjectResult(new ApiResponse { ErrorMessages = [ex.Message], StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
+                return new ObjectResult(new ApiResponse { IsSuccess = false, ErrorMessages = [ex.Message], StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
             }
 
             // be careful with modelstate when debugging
             // it is checked before method is executed so breakpoing may not be triggered!
-            if (!ModelState.IsValid) return BadRequest(new ApiResponse { Result = ModelState, StatusCode = System.Net.HttpStatusCode.BadRequest });
+            if (!ModelState.IsValid) return BadRequest(new ApiResponse { IsSuccess = false, Result = ModelState, StatusCode = System.Net.HttpStatusCode.BadRequest });
 
             // lets do some simple validation
-            if (villaDto is null) return BadRequest(new ApiResponse { StatusCode = System.Net.HttpStatusCode.BadRequest });
+            if (villaDto is null) return BadRequest(new ApiResponse { IsSuccess = false, StatusCode = System.Net.HttpStatusCode.BadRequest });
 
             try
             {
@@ -159,13 +160,13 @@ namespace RealEstate.Controllers.v1
                     new SqlParameter("Amenity", villaDto.Amenity ?? (object)DBNull.Value),
                 ])).FirstOrDefault();
 
-                if (Id == 0) return new ObjectResult(new ApiResponse { StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
+                if (Id == 0) return new ObjectResult(new ApiResponse { IsSuccess = false, StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
 
-                return CreatedAtRoute("GetVilla", new { entityId = Id }, new ApiResponse { Result = villaDto, IsSuccess = true, StatusCode = System.Net.HttpStatusCode.Created });
+                return CreatedAtRoute("GetVilla", new { entityId = Id }, new ApiResponse { IsSuccess = true, Result = villaDto, StatusCode = System.Net.HttpStatusCode.Created });
             }
             catch (Exception ex)
             {
-                return new ObjectResult(new ApiResponse { ErrorMessages = [ex.Message], StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
+                return new ObjectResult(new ApiResponse { IsSuccess = false, ErrorMessages = [ex.Message], StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
             }
         }
 
@@ -180,7 +181,7 @@ namespace RealEstate.Controllers.v1
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<ApiResponse>> Delete(int entityId) // not returning a type so can use IActionResult as return type
         {
-            if (entityId < 1) return BadRequest(new ApiResponse { StatusCode = System.Net.HttpStatusCode.BadRequest });
+            if (entityId < 1) return BadRequest(new ApiResponse { IsSuccess = false, StatusCode = System.Net.HttpStatusCode.BadRequest });
 
             try
             {
@@ -190,7 +191,7 @@ namespace RealEstate.Controllers.v1
             }
             catch (Exception ex)
             {
-                return new ObjectResult(new ApiResponse { ErrorMessages = [ex.Message], StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
+                return new ObjectResult(new ApiResponse { IsSuccess = false, ErrorMessages = [ex.Message], StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
             }
 
             return Ok(new ApiResponse { IsSuccess = true, StatusCode = System.Net.HttpStatusCode.NoContent });
@@ -206,8 +207,8 @@ namespace RealEstate.Controllers.v1
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Put(int entityId, [FromBody] UpdateVillaDto villaDto) // not returning a type so can use IActionResult as return type
         {
-            if (entityId < 1) return BadRequest(new ApiResponse { StatusCode = System.Net.HttpStatusCode.BadRequest, ErrorMessages = ["Invalid Entity Id"] });
-            if (villaDto is null || villaDto.Id != entityId) return BadRequest(new ApiResponse { StatusCode = System.Net.HttpStatusCode.BadRequest, ErrorMessages = ["Invalid Entity Id"] });
+            if (entityId < 1) return BadRequest(new ApiResponse { IsSuccess = false, StatusCode = System.Net.HttpStatusCode.BadRequest, ErrorMessages = ["Invalid Entity Id"] });
+            if (villaDto is null || villaDto.Id != entityId) return BadRequest(new ApiResponse { IsSuccess = false, StatusCode = System.Net.HttpStatusCode.BadRequest, ErrorMessages = ["Invalid Entity Id"] });
 
             try
             {
@@ -235,7 +236,7 @@ namespace RealEstate.Controllers.v1
             }
             catch (Exception ex)
             {
-                return new ObjectResult(new ApiResponse { ErrorMessages = [ex.Message], StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
+                return new ObjectResult(new ApiResponse { IsSuccess = false, ErrorMessages = [ex.Message], StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
             }
 
             return Ok(new ApiResponse { IsSuccess = true, StatusCode = System.Net.HttpStatusCode.NoContent });
@@ -270,8 +271,8 @@ namespace RealEstate.Controllers.v1
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Patch(int entityId, JsonPatchDocument<UpdateVillaDto> patchVillaDto)
         {
-            if (entityId < 1) return BadRequest(new ApiResponse { StatusCode = System.Net.HttpStatusCode.BadRequest });
-            if (patchVillaDto is null) return BadRequest(new ApiResponse { StatusCode = System.Net.HttpStatusCode.BadRequest });
+            if (entityId < 1) return BadRequest(new ApiResponse { IsSuccess = false, StatusCode = System.Net.HttpStatusCode.BadRequest });
+            if (patchVillaDto is null) return BadRequest(new ApiResponse { IsSuccess = false, StatusCode = System.Net.HttpStatusCode.BadRequest });
 
             try
             {
@@ -279,7 +280,7 @@ namespace RealEstate.Controllers.v1
                     SELECT * FROM dbo.Villas WHERE Id = @Id
                 ", [new SqlParameter("Id", entityId)])).FirstOrDefault();
 
-                if (villa is null) return NotFound(new ApiResponse { StatusCode = System.Net.HttpStatusCode.NotFound });
+                if (villa is null) return NotFound(new ApiResponse { IsSuccess = false, StatusCode = System.Net.HttpStatusCode.NotFound });
 
                 var upDateVillaDTO = villa.ToUpdateDto();
 
@@ -311,7 +312,7 @@ namespace RealEstate.Controllers.v1
             }
             catch (Exception ex)
             {
-                return new ObjectResult(new ApiResponse { ErrorMessages = [ex.Message], StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
+                return new ObjectResult(new ApiResponse { IsSuccess = false, ErrorMessages = [ex.Message], StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
             }
 
             return Ok(new ApiResponse { IsSuccess = true, StatusCode = System.Net.HttpStatusCode.NoContent });

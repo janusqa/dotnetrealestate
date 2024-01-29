@@ -19,6 +19,7 @@ namespace RealEstate.DataAccess.Repository
         private readonly IUserEmailStore<ApplicationUser> _es;
 
         private readonly string _jwtAccessSecret;
+        private readonly string _jwtRefreshSecret;
 
         public ApplicationUserRepository(
             ApplicationDbContext db,
@@ -31,6 +32,7 @@ namespace RealEstate.DataAccess.Repository
             _us = us;
             _es = GetEmailStore();
             _jwtAccessSecret = config.GetValue<string>("ApiSettings:JwtAccessSecret") ?? "";
+            _jwtRefreshSecret = config.GetValue<string>("ApiSettings:JwtRefreshSecret") ?? "";
         }
 
         public async Task<bool> IsUinqueUser(string UserName)
@@ -56,11 +58,16 @@ namespace RealEstate.DataAccess.Repository
 
             if (!isValidCredentials) return null;
 
-            var jwtAccessToken = await GetJwtToken(user);
+            var xsrf = Guid.NewGuid().ToString();
+            var jwtAccessToken = await GetJwtToken(user, xsrf: xsrf);
+            var jwtRefreshToken = await GetJwtToken(user, isRefresh: true);
 
-            return jwtAccessToken is not null ? new TokenDto(
-                AccessToken: jwtAccessToken
-            ) : null;
+            return jwtAccessToken is not null && jwtRefreshToken is not null
+                ? new TokenDto(
+                    AccessToken: jwtAccessToken,
+                    XsrfToken: xsrf,
+                    RefreshToken: jwtRefreshToken)
+                : null;
         }
 
         public async Task<TokenDto?> Register(CreateApplicationUserDto userDto)
@@ -71,6 +78,7 @@ namespace RealEstate.DataAccess.Repository
                 await _us.SetUserNameAsync(user, userDto.UserName, CancellationToken.None);
                 await _es.SetEmailAsync(user, userDto.UserName, CancellationToken.None);
                 user.Name = userDto.Name;
+                user.UserSecret = BcryptUtils.CreateSalt();
                 var result = await _um.CreateAsync(user, userDto.Password);
 
                 if (result.Succeeded)
@@ -92,16 +100,33 @@ namespace RealEstate.DataAccess.Repository
 
             return null;
         }
-
-        private async Task<string?> GetJwtToken(ApplicationUser user)
+        public async Task<TokenDto?> Refresh(string userName)
         {
-            if (user.UserName is null) return null;
+            var user = await _um.FindByNameAsync(userName);
+
+            if (user is null) return null;
+
+            var xsrf = Guid.NewGuid().ToString();
+            var jwtAccessToken = await GetJwtToken(user, xsrf: xsrf);
+
+            return jwtAccessToken is not null
+                ? new TokenDto(
+                    AccessToken: jwtAccessToken,
+                    XsrfToken: xsrf)
+                : null;
+        }
+
+        private async Task<string?> GetJwtToken(ApplicationUser user, string? xsrf = null, bool isRefresh = false)
+        {
+            if (user.UserName is null || user.UserSecret is null) return null;
 
             var roles = await _um.GetRolesAsync(user);
             if (roles.Count < 1) return null;
 
             var jwtTokenHandler = new JwtSecurityTokenHandler();
-            var jwtKey = Encoding.ASCII.GetBytes(_jwtAccessSecret);
+            var serverSecret = isRefresh ? _jwtRefreshSecret : _jwtAccessSecret;
+            var userSecret = user.UserSecret;
+            var jwtKey = Encoding.ASCII.GetBytes($"{serverSecret}{userSecret}");
 
             var jwtTokenDescriptor = new SecurityTokenDescriptor
             {
@@ -109,9 +134,13 @@ namespace RealEstate.DataAccess.Repository
                     new Claim(ClaimTypes.Name, user.UserName.ToString()),
                     new Claim(ClaimTypes.Role, roles.First())
                 }),
-                Expires = DateTime.UtcNow.AddDays(7),
+                Expires = isRefresh ? DateTime.UtcNow.AddMinutes(SD.ApiRefreshTokenExpiry) : DateTime.UtcNow.AddMinutes(SD.ApiAccessTokenExpiry),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(jwtKey), SecurityAlgorithms.HmacSha256Signature)
             };
+
+            // add xsrf if an access token is being generated
+            if (!isRefresh && xsrf is not null) jwtTokenDescriptor.Subject.AddClaim(new Claim("xsrf", xsrf));
+
             var jwtToken = jwtTokenHandler.WriteToken(jwtTokenHandler.CreateToken(jwtTokenDescriptor));
 
             return jwtToken;
@@ -140,5 +169,6 @@ namespace RealEstate.DataAccess.Repository
             }
             return (IUserEmailStore<ApplicationUser>)_us;
         }
+
     }
 }

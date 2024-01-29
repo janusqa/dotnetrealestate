@@ -10,7 +10,12 @@ using System.ComponentModel.DataAnnotations;
 namespace RealEstate.Dto
 {
     public record TokenDto(
-        [Required] string AccessToken
+        string AccessToken,
+        string XsrfToken,
+        string? RefreshToken = null
     );
 
+    public record AccessTokenDto(
+    string AccessToken
+);
 }

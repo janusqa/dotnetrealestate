@@ -148,9 +148,11 @@ namespace RealEstate.UI.Services
                 if (withBearer)
                 {
                     var token = _tokenProvider.GetToken();
-                    if (token is not null)
+                    var xsrfToken = _tokenProvider.GetXsrfToken();
+                    if (token is not null && xsrfToken is not null)
                     {
                         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
+                        client.DefaultRequestHeaders.Add("X-XSRF-TOKEN", xsrfToken);
                     }
                 }
 

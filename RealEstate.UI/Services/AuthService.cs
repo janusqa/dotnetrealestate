@@ -24,6 +24,16 @@ namespace RealEstate.UI.Services
                 }, withBearer: false);
         }
 
+        public async Task<ApiResponse?> LogoutAsync()
+        {
+            return await RequestAsync(
+                new ApiRequest
+                {
+                    ApiMethod = SD.ApiMethod.GET,
+                    Url = $"{_url}/logout"
+                });
+        }
+
         public async Task<ApiResponse?> RegisterAsync<U>(U dto)
         {
             return await RequestAsync(
@@ -33,6 +43,16 @@ namespace RealEstate.UI.Services
                     Data = dto,
                     Url = $"{_url}/register"
                 }, withBearer: false);
+        }
+
+        public async Task<ApiResponse?> RefreshAsync()
+        {
+            return await RequestAsync(
+                new ApiRequest
+                {
+                    ApiMethod = SD.ApiMethod.GET,
+                    Url = $"{_url}/refresh"
+                });
         }
     }
 }

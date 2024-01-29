@@ -47,5 +47,12 @@ namespace RealEstate.Models.Domain
                 VillaDto: villaNumber.Villa?.ToDto()
             );
         }
+
+        public static AccessTokenDto ToDto(this TokenDto tokenDto)
+        {
+            return new AccessTokenDto(
+                AccessToken: tokenDto.AccessToken
+            );
+        }
     }
 }

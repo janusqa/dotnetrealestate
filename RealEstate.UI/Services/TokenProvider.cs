@@ -17,18 +17,20 @@ namespace RealEstate.UI.Services
         public void ClearToken()
         {
             _hca.HttpContext?.Response.Cookies.Delete(SD.JwtAccessToken);
+            _hca.HttpContext?.Response.Cookies.Delete(SD.ApiRrefreshTokenCookie);
+            _hca.HttpContext?.Response.Cookies.Delete(SD.ApiXsrfCookie);
         }
 
-        public TokenDto? GetToken()
+        public AccessTokenDto? GetToken()
         {
             try
             {
-                string? token = null;
-                bool? hasAccessToken = _hca.HttpContext?.Request.Cookies.TryGetValue(SD.JwtAccessToken, out token);
+                string? accessToken = null;
+                bool? hasAccessToken = _hca.HttpContext?.Request.Cookies.TryGetValue(SD.JwtAccessToken, out accessToken);
                 return hasAccessToken is not null
                         && hasAccessToken.Value
-                        && token is not null
-                        ? new TokenDto(AccessToken: token) : null;
+                        && accessToken is not null
+                        ? new AccessTokenDto(AccessToken: accessToken) : null;
             }
             catch (Exception)
             {
@@ -36,10 +38,27 @@ namespace RealEstate.UI.Services
             }
         }
 
-        public void SetToken(TokenDto tokenDto)
+        public string? GetXsrfToken()
+        {
+            try
+            {
+                string? xsrfToken = null;
+                bool? hasXsrfToken = _hca.HttpContext?.Request.Cookies.TryGetValue(SD.ApiXsrfCookie, out xsrfToken);
+                return hasXsrfToken is not null
+                        && hasXsrfToken.Value
+                        && xsrfToken is not null
+                        ? xsrfToken : null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        public void SetToken(AccessTokenDto accessTokenDto)
         {
             var cookieOptions = new CookieOptions { Expires = DateTime.UtcNow.AddDays(60) };
-            _hca.HttpContext?.Response.Cookies.Append(SD.JwtAccessToken, tokenDto.AccessToken, cookieOptions);
+            _hca.HttpContext?.Response.Cookies.Append(SD.JwtAccessToken, accessTokenDto.AccessToken, cookieOptions);
         }
     }
 }

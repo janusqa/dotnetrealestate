@@ -13,9 +13,13 @@
         // sessions management
         public const string JwtAccessToken = "JwtAccessToken";
 
-        // API Versioning
+        // API Constants
         public const string ApiVersion = "v2";
         public const string ApiBaseUrl = "https://localhost:7001";
+        public const string ApiRrefreshTokenCookie = "RETREFTOKEN";
+        public const string ApiXsrfCookie = "XSRF-TOKEN";
+        public const int ApiRefreshTokenExpiry = 5;
+        public const int ApiAccessTokenExpiry = 1;
 
         // Role Constants
         public const string Role_Customer = "Customer";

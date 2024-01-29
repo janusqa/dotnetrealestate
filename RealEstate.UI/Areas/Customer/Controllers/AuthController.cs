@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.IdentityModel.JsonWebTokens;
@@ -42,7 +43,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
                 {
                     if (response.IsSuccess)
                     {
-                        var jwt = JsonConvert.DeserializeObject<TokenDto>(jsonData);
+                        var jwt = JsonConvert.DeserializeObject<AccessTokenDto>(jsonData);
                         if (jwt is not null && jwt.AccessToken is not null)
                         {
                             // save the session so it can be automatically sent on each request
@@ -62,8 +63,11 @@ namespace RealEstate.UI.Areas.Customer.Controllers
                             var identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
                             try
                             {
+                                // This is an example of how to read a claim from a token
+                                // var uniqueNameClaim = jwtToken.Claims.First(c => c.Type == "unique_name").Value
                                 identity.AddClaim(new Claim(ClaimTypes.Name, jwtToken.Claims.First(c => c.Type == "unique_name").Value));
                                 identity.AddClaim(new Claim(ClaimTypes.Role, jwtToken.Claims.First(c => c.Type == "role").Value));
+                                identity.AddClaim(new Claim("xsrf", jwtToken.Claims.First(c => c.Type == "xsrf").Value));
                                 var principal = new ClaimsPrincipal(identity);
                                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
@@ -116,7 +120,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
                 {
                     if (response.IsSuccess)
                     {
-                        var jwt = JsonConvert.DeserializeObject<TokenDto>(jsonData);
+                        var jwt = JsonConvert.DeserializeObject<AccessTokenDto>(jsonData);
                         if (jwt is not null && jwt.AccessToken is not null)
                         {
                             _tokenProvider.SetToken(jwt);
@@ -144,8 +148,10 @@ namespace RealEstate.UI.Areas.Customer.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> Logout()
         {
+            await _api.ApplicationUsers.LogoutAsync();
             await HttpContext.SignOutAsync();
             _tokenProvider.ClearToken();
             return RedirectToAction(nameof(Login), "Auth");

@@ -9,5 +9,6 @@ namespace RealEstate.DataAccess.Repository
         Task<bool> IsUinqueUser(string UserName);
         Task<TokenDto?> Login(ApplicationUserLoginRequestDto loginRequestDto);
         Task<TokenDto?> Register(CreateApplicationUserDto userDto);
+        Task<TokenDto?> Refresh(string userName);
     }
 }

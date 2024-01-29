@@ -4,8 +4,9 @@ namespace RealEstate.UI.Services.IServices
 {
     public interface ITokenProvider
     {
-        void SetToken(TokenDto tokenDto);
-        TokenDto? GetToken();
+        void SetToken(AccessTokenDto accessTokenDto);
+        AccessTokenDto? GetToken();
         void ClearToken();
+        string? GetXsrfToken();
     }
 }
