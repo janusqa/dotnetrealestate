@@ -48,7 +48,7 @@ namespace RealEstate.Models.Domain
             );
         }
 
-        public static AccessTokenDto ToDto(this TokenDto tokenDto)
+        public static AccessTokenDto ToAccessTokenDto(this TokenDto tokenDto)
         {
             return new AccessTokenDto(
                 AccessToken: tokenDto.AccessToken

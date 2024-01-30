@@ -40,7 +40,7 @@ namespace RealEstate.Controllers
                     var result = await _uow.ApplicationUsers.Login(request);
                     if (result?.AccessToken is not null && result?.RefreshToken is not null && result?.XsrfToken is not null)
                     {
-                        var acccessTokenDto = result.ToDto();
+                        var acccessTokenDto = result.ToAccessTokenDto();
 
                         // refresh
                         Response.Cookies.Append(
@@ -162,7 +162,7 @@ namespace RealEstate.Controllers
                     var result = await _uow.ApplicationUsers.Refresh(userName);
                     if (result?.AccessToken is not null && result?.XsrfToken is not null)
                     {
-                        var acccessTokenDto = result.ToDto();
+                        var acccessTokenDto = result.ToAccessTokenDto();
 
                         // xsrf
                         Response.Cookies.Append(

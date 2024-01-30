@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
@@ -142,7 +140,8 @@ namespace RealEstate.Jwt
                                 ValidateIssuerSigningKey = true,
                                 ValidateLifetime = true,
                                 ValidateIssuer = false,
-                                ValidateAudience = false
+                                ValidateAudience = false,
+                                ClockSkew = TimeSpan.Zero // IMPORTANT: this must be set to expire token at exact expiry
                             });
 
                         if (validationResult.IsValid)
