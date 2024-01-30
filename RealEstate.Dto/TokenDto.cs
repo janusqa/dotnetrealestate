@@ -5,7 +5,6 @@
 // a CreatedDate field we may not want to send this back
 // So in our controller we gaurd the info the model returns
 // Via a DTO.
-using System.ComponentModel.DataAnnotations;
 
 namespace RealEstate.Dto
 {
@@ -16,6 +15,6 @@ namespace RealEstate.Dto
     );
 
     public record AccessTokenDto(
-    string AccessToken
-);
+        string AccessToken
+    );
 }

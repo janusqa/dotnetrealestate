@@ -1,9 +1,11 @@
 using Asp.Versioning;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using RealEstate.DataAccess.UnitOfWork.IUnitOfWork;
 using RealEstate.Dto;
+using RealEstate.Jwt;
 using RealEstate.Models.Api;
 using RealEstate.Models.Domain;
 using RealEstate.Utility;
@@ -181,7 +183,7 @@ namespace RealEstate.Controllers
                 }
                 else
                 {
-                    return BadRequest(new ApiResponse { IsSuccess = false, ErrorMessages = ["A valid email, and password is required to sign in"], StatusCode = System.Net.HttpStatusCode.BadRequest });
+                    return BadRequest(new ApiResponse { IsSuccess = false, ErrorMessages = ["User claim not present"], StatusCode = System.Net.HttpStatusCode.BadRequest });
                 }
             }
             catch (Exception ex)

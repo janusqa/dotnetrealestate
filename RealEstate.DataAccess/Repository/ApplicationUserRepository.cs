@@ -59,8 +59,8 @@ namespace RealEstate.DataAccess.Repository
             if (!isValidCredentials) return null;
 
             var xsrf = Guid.NewGuid().ToString();
-            var jwtAccessToken = await GetJwtToken(user, xsrf: xsrf);
-            var jwtRefreshToken = await GetJwtToken(user, isRefresh: true);
+            var jwtAccessToken = await CreateJwtToken(user, xsrf: xsrf);
+            var jwtRefreshToken = await CreateJwtToken(user, isRefresh: true);
 
             return jwtAccessToken is not null && jwtRefreshToken is not null
                 ? new TokenDto(
@@ -107,7 +107,7 @@ namespace RealEstate.DataAccess.Repository
             if (user is null) return null;
 
             var xsrf = Guid.NewGuid().ToString();
-            var jwtAccessToken = await GetJwtToken(user, xsrf: xsrf);
+            var jwtAccessToken = await CreateJwtToken(user, xsrf: xsrf);
 
             return jwtAccessToken is not null
                 ? new TokenDto(
@@ -116,7 +116,7 @@ namespace RealEstate.DataAccess.Repository
                 : null;
         }
 
-        private async Task<string?> GetJwtToken(ApplicationUser user, string? xsrf = null, bool isRefresh = false)
+        private async Task<string?> CreateJwtToken(ApplicationUser user, string? xsrf = null, bool isRefresh = false)
         {
             if (user.UserName is null || user.UserSecret is null) return null;
 
@@ -127,6 +127,8 @@ namespace RealEstate.DataAccess.Repository
             var serverSecret = isRefresh ? _jwtRefreshSecret : _jwtAccessSecret;
             var userSecret = user.UserSecret;
             var jwtKey = Encoding.ASCII.GetBytes($"{serverSecret}{userSecret}");
+            // var jwtKey = Encoding.ASCII.GetBytes(serverSecret);
+
 
             var jwtTokenDescriptor = new SecurityTokenDescriptor
             {

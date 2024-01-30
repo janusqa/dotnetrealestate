@@ -5,13 +5,15 @@ using RealEstate.DataAccess.UnitOfWork.IUnitOfWork;
 using RealEstate.DataAccess.Repository;
 using RealEstate.DataAccess.DBInitilizer;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using Microsoft.OpenApi.Models;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Mvc;
 using RealEstate.Models.Identity;
 using Microsoft.AspNetCore.Identity;
+using RealEstate.Jwt;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,26 +47,34 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFramework
 // add custom services
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IDBInitilizer, DBInitilizer>();
+builder.Services.AddScoped<ICustomJwtBearerHandler, CustomJwtBearerHandler>();
 
 // add (jwt, could be other types of auth too) authentication
 var JwtAccessSecret = builder.Configuration.GetValue<string>("ApiSettings:JwtAccessSecret") ?? "";
-builder.Services.AddAuthentication(auth =>
+builder.Services.AddAuthentication(options =>
 {
-    auth.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    auth.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer(auth =>
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddScheme<JwtBearerOptions, CustomJwtBearerHandler>(JwtBearerDefaults.AuthenticationScheme, options =>
 {
-    auth.RequireHttpsMetadata = false;
-    auth.SaveToken = true;
-    auth.TokenValidationParameters = new TokenValidationParameters
-    {
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(JwtAccessSecret)),
-        ValidateIssuerSigningKey = true,
-        ValidateLifetime = true,
-        ValidateIssuer = false,
-        ValidateAudience = false
-    };
+    options.RequireHttpsMetadata = false;
+    options.SaveToken = true;
+    options.IncludeErrorDetails = true;
 });
+// .AddJwtBearer(auth =>
+// {
+//     auth.RequireHttpsMetadata = false;
+//     auth.SaveToken = true;
+//     auth.TokenValidationParameters = new TokenValidationParameters
+//     {
+//         IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(JwtAccessSecret)),
+//         ValidateIssuerSigningKey = true,
+//         ValidateLifetime = true,
+//         ValidateIssuer = false,
+//         ValidateAudience = false
+//     };
+// });
 
 // add authorization
 builder.Services.AddAuthorization();

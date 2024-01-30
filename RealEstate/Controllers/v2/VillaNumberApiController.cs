@@ -6,6 +6,7 @@ using RealEstate.Models.Domain;
 using RealEstate.Dto;
 using Microsoft.AspNetCore.Authorization;
 using Asp.Versioning;
+using RealEstate.Jwt;
 
 namespace RealEstate.Controllers.v2
 {
