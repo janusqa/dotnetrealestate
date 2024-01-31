@@ -114,7 +114,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
         {
             if (ModelState.IsValid)
             {
-                var response = await _api.ApplicationUsers.LoginAsync(dto);
+                var response = await _api.ApplicationUsers.RegisterAsync(dto);
                 var jsonData = Convert.ToString(response?.Result);
                 if (response is not null && response.IsSuccess && !string.IsNullOrEmpty(jsonData))
                 {
