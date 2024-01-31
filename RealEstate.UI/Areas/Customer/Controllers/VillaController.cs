@@ -24,23 +24,22 @@ namespace RealEstate.UI.Areas.Customer.Controllers
 
             var response = await _api.Villas.GetAllAsync();
             var jsonData = Convert.ToString(response?.Result);
-            if (response is not null && jsonData is not null)
+            if (response is not null && response.IsSuccess && !string.IsNullOrEmpty(jsonData))
             {
-                if (response.IsSuccess)
+
+                villas = JsonConvert.DeserializeObject<List<VillaDto>>(jsonData);
+            }
+            else
+            {
+                if (response?.ErrorMessages is not null)
                 {
-                    villas = JsonConvert.DeserializeObject<List<VillaDto>>(jsonData);
-                }
-                else
-                {
-                    if (response.ErrorMessages is not null)
+                    foreach (var message in response.ErrorMessages)
                     {
-                        foreach (var message in response.ErrorMessages)
-                        {
-                            Console.WriteLine(message);
-                        }
+                        Console.WriteLine(message);
                     }
                 }
             }
+
 
             return View(villas);
         }
@@ -61,24 +60,22 @@ namespace RealEstate.UI.Areas.Customer.Controllers
             {
                 var response = await _api.Villas.PostAsync(dto, SD.ContentType.MultiPartFormData);
                 var jsonData = Convert.ToString(response?.Result);
-                if (response is not null && jsonData is not null)
+                if (response is not null && response.IsSuccess && !string.IsNullOrEmpty(jsonData))
                 {
-                    if (response.IsSuccess)
+                    TempData["success"] = "Villa created successfully!";
+                    return RedirectToAction(nameof(Index), "Villa");
+                }
+                else
+                {
+                    if (response?.ErrorMessages is not null)
                     {
-                        TempData["success"] = "Villa created successfully!";
-                        return RedirectToAction(nameof(Index), "Villa");
-                    }
-                    else
-                    {
-                        if (response.ErrorMessages is not null)
+                        foreach (var (message, idx) in response.ErrorMessages.Select((e, idx) => (e, idx)))
                         {
-                            foreach (var (message, idx) in response.ErrorMessages.Select((e, idx) => (e, idx)))
-                            {
-                                ModelState.AddModelError($"CreateError[{idx}]", message);
-                            }
+                            ModelState.AddModelError($"CreateError[{idx}]", message);
                         }
                     }
                 }
+
             }
             return View(dto);
         }
@@ -90,23 +87,19 @@ namespace RealEstate.UI.Areas.Customer.Controllers
             {
                 var response = await _api.Villas.GetAsync(entityId.Value);
                 var jsonData = Convert.ToString(response?.Result);
-
-                if (response is not null && jsonData is not null)
+                if (response is not null && response.IsSuccess && !string.IsNullOrEmpty(jsonData))
                 {
-                    if (response.IsSuccess)
+                    var villa = JsonConvert.DeserializeObject<VillaDto>(jsonData);
+                    if (villa is not null) return View(villa.ToUpdateDto());
+                    else return NotFound();
+                }
+                else
+                {
+                    if (response?.ErrorMessages is not null)
                     {
-                        var villa = JsonConvert.DeserializeObject<VillaDto>(jsonData);
-                        if (villa is not null) return View(villa.ToUpdateDto());
-                        else return NotFound();
-                    }
-                    else
-                    {
-                        if (response.ErrorMessages is not null)
+                        foreach (var message in response.ErrorMessages)
                         {
-                            foreach (var message in response.ErrorMessages)
-                            {
-                                Console.WriteLine(message);
-                            }
+                            Console.WriteLine(message);
                         }
                     }
                 }
@@ -124,21 +117,18 @@ namespace RealEstate.UI.Areas.Customer.Controllers
             {
                 var response = await _api.Villas.PutAsync(dto.Id, dto, SD.ContentType.MultiPartFormData);
                 // var jsonData = Convert.ToString(response?.Result);
-                if (response is not null)
+                if (response is not null && response.IsSuccess)
                 {
-                    if (response.IsSuccess)
+                    TempData["success"] = "Villa updated successfully!";
+                    return RedirectToAction(nameof(Index), "Villa");
+                }
+                else
+                {
+                    if (response?.ErrorMessages is not null)
                     {
-                        TempData["success"] = "Villa updated successfully!";
-                        return RedirectToAction(nameof(Index), "Villa");
-                    }
-                    else
-                    {
-                        if (response.ErrorMessages is not null)
+                        foreach (var (message, idx) in response.ErrorMessages.Select((e, idx) => (e, idx)))
                         {
-                            foreach (var (message, idx) in response.ErrorMessages.Select((e, idx) => (e, idx)))
-                            {
-                                ModelState.AddModelError($"UpdateError[{idx}]", message);
-                            }
+                            ModelState.AddModelError($"UpdateError[{idx}]", message);
                         }
                     }
                 }

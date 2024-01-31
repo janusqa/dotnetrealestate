@@ -39,54 +39,54 @@ namespace RealEstate.UI.Areas.Customer.Controllers
             {
                 var response = await _api.ApplicationUsers.LoginAsync(dto);
                 var jsonData = Convert.ToString(response?.Result);
-                if (response is not null && jsonData is not null)
+                if (response is not null && response.IsSuccess && !string.IsNullOrEmpty(jsonData))
                 {
-                    if (response.IsSuccess)
+                    var jwt = JsonConvert.DeserializeObject<TokenDto>(jsonData);
+                    if (jwt is not null && jwt.AccessToken is not null)
                     {
-                        var jwt = JsonConvert.DeserializeObject<AccessTokenDto>(jsonData);
-                        if (jwt is not null && jwt.AccessToken is not null)
+                        // save the session so it can be automatically sent on each request
+                        // NOTE THIS DOES NOT SEND TOKEN TO API. IT JUST SAVES TOKEN 
+                        // ON CLIENT TO ALLOW UI TO REMEMBER WE ARE LOGGED IN.
+                        // TO PASS TO API MODIFY methods in services (IBaseServices) to take 
+                        // a token parameter
+
+                        // Although we are receving a user object we do not want to receive claims
+                        // from there as we dont really have to return a user object from api
+                        // we should really be only returning a token. But hey this is a demo
+                        // Let us now retrive the claims from the Token.
+
+                        var jwtTokenHandler = new JsonWebTokenHandler();
+                        var jwtToken = jwtTokenHandler.ReadJsonWebToken(jwt.AccessToken);
+
+                        try
                         {
-                            // save the session so it can be automatically sent on each request
-                            // NOTE THIS DOES NOT SEND TOKEN TO API. IT JUST SAVES TOKEN 
-                            // ON CLIENT TO ALLOW UI TO REMEMBER WE ARE LOGGED IN.
-                            // TO PASS TO API MODIFY methods in services (IBaseServices) to take 
-                            // a token parameter
+                            // This is an example of how to read a claim from a token
+                            // var uniqueNameClaim = jwtToken.Claims.First(c => c.Type == "unique_name").Value
+                            var claims = new List<Claim> {
+                                new Claim(ClaimTypes.Name, jwtToken.Claims.First(c => c.Type == "unique_name").Value),
+                                new Claim(ClaimTypes.Role, jwtToken.Claims.First(c => c.Type == "role").Value),
+                                new Claim("xsrf", jwtToken.Claims.First(c => c.Type == "xsrf").Value)
+                            };
 
-                            // Although we are receving a user object we do not want to receive claims
-                            // from there as we dont really have to return a user object from api
-                            // we should really be only returning a token. But hey this is a demo
-                            // Let us now retrive the claims from the Token.
+                            var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme));
+                            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
-                            var jwtTokenHandler = new JsonWebTokenHandler();
-                            var jwtToken = jwtTokenHandler.ReadJsonWebToken(jwt.AccessToken);
-
-                            var identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
-                            try
-                            {
-                                // This is an example of how to read a claim from a token
-                                // var uniqueNameClaim = jwtToken.Claims.First(c => c.Type == "unique_name").Value
-                                identity.AddClaim(new Claim(ClaimTypes.Name, jwtToken.Claims.First(c => c.Type == "unique_name").Value));
-                                identity.AddClaim(new Claim(ClaimTypes.Role, jwtToken.Claims.First(c => c.Type == "role").Value));
-                                identity.AddClaim(new Claim("xsrf", jwtToken.Claims.First(c => c.Type == "xsrf").Value));
-                                var principal = new ClaimsPrincipal(identity);
-                                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
-
-                                _tokenProvider.SetToken(jwt);
-                                return RedirectToAction(nameof(Index), "Home");
-                            }
-                            catch (ArgumentNullException ex)
-                            {
-                                Console.WriteLine($"Jwt Error: {ex.Message}");
-                                return RedirectToAction(nameof(AccessDenied), "Auth");
-                            }
+                            _tokenProvider.SetToken(jwt);
+                            return RedirectToAction(nameof(Index), "Home");
+                        }
+                        catch (ArgumentNullException ex)
+                        {
+                            Console.WriteLine($"Jwt Error: {ex.Message}");
+                            return RedirectToAction(nameof(AccessDenied), "Auth");
                         }
                     }
-                    else
+
+                }
+                else
+                {
+                    if (response?.ErrorMessages is not null)
                     {
-                        if (response.ErrorMessages is not null)
-                        {
-                            ModelState.AddModelError("LoginError", string.Join(" | ", response.ErrorMessages));
-                        }
+                        ModelState.AddModelError("LoginError", string.Join(" | ", response.ErrorMessages));
                     }
                 }
             }
@@ -114,27 +114,47 @@ namespace RealEstate.UI.Areas.Customer.Controllers
         {
             if (ModelState.IsValid)
             {
-                var response = await _api.ApplicationUsers.RegisterAsync(dto);
+                var response = await _api.ApplicationUsers.LoginAsync(dto);
                 var jsonData = Convert.ToString(response?.Result);
-                if (response is not null && jsonData is not null)
+                if (response is not null && response.IsSuccess && !string.IsNullOrEmpty(jsonData))
                 {
-                    if (response.IsSuccess)
+                    var jwt = JsonConvert.DeserializeObject<TokenDto>(jsonData);
+                    if (jwt is not null && jwt.AccessToken is not null)
                     {
-                        var jwt = JsonConvert.DeserializeObject<AccessTokenDto>(jsonData);
-                        if (jwt is not null && jwt.AccessToken is not null)
+                        var jwtTokenHandler = new JsonWebTokenHandler();
+                        var jwtToken = jwtTokenHandler.ReadJsonWebToken(jwt.AccessToken);
+
+                        try
                         {
+                            // This is an example of how to read a claim from a token
+                            // var uniqueNameClaim = jwtToken.Claims.First(c => c.Type == "unique_name").Value
+                            var claims = new List<Claim> {
+                                new Claim(ClaimTypes.Name, jwtToken.Claims.First(c => c.Type == "unique_name").Value),
+                                new Claim(ClaimTypes.Role, jwtToken.Claims.First(c => c.Type == "role").Value),
+                                new Claim("xsrf", jwtToken.Claims.First(c => c.Type == "xsrf").Value)
+                            };
+
+                            var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme));
+                            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+
                             _tokenProvider.SetToken(jwt);
                             return RedirectToAction(nameof(Index), "Home");
                         }
-                    }
-                    else
-                    {
-                        if (response.ErrorMessages is not null)
+                        catch (ArgumentNullException ex)
                         {
-                            ModelState.AddModelError("LoginError", string.Join(" | ", response.ErrorMessages));
+                            Console.WriteLine($"Jwt Error: {ex.Message}");
+                            return RedirectToAction(nameof(AccessDenied), "Auth");
                         }
                     }
                 }
+                else
+                {
+                    if (response?.ErrorMessages is not null)
+                    {
+                        ModelState.AddModelError("LoginError", string.Join(" | ", response.ErrorMessages));
+                    }
+                }
+
             }
 
             var roleList = new List<SelectListItem> {

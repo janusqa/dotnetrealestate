@@ -6,7 +6,6 @@ using RealEstate.Dto;
 using RealEstate.UI.ApiService;
 using RealEstate.UI.Models;
 using RealEstate.UI.Models.ViewModels;
-using RealEstate.Utility;
 
 namespace RealEstate.UI.Areas.Customer.Controllers
 {
@@ -26,20 +25,17 @@ namespace RealEstate.UI.Areas.Customer.Controllers
 
             var response = await _api.VillaNumbers.GetAllAsync();
             var jsonData = Convert.ToString(response?.Result);
-            if (response is not null && jsonData is not null)
+            if (response is not null && response.IsSuccess && !string.IsNullOrEmpty(jsonData))
             {
-                if (response.IsSuccess)
+                villaNumbers = JsonConvert.DeserializeObject<List<VillaNumberDto>>(jsonData);
+            }
+            else
+            {
+                if (response?.ErrorMessages is not null)
                 {
-                    villaNumbers = JsonConvert.DeserializeObject<List<VillaNumberDto>>(jsonData);
-                }
-                else
-                {
-                    if (response.ErrorMessages is not null)
+                    foreach (var message in response.ErrorMessages)
                     {
-                        foreach (var message in response.ErrorMessages)
-                        {
-                            Console.WriteLine(message);
-                        }
+                        Console.WriteLine(message);
                     }
                 }
             }
@@ -53,15 +49,12 @@ namespace RealEstate.UI.Areas.Customer.Controllers
             await Task.CompletedTask;
             IEnumerable<SelectListItem> villaListSelect = [];
 
-            var responseVillaList = await _api.Villas.GetAllAsync();
-            var jsonDataVillaList = Convert.ToString(responseVillaList?.Result);
-            if (responseVillaList is not null && jsonDataVillaList is not null)
+            var response = await _api.Villas.GetAllAsync();
+            var jsonData = Convert.ToString(response?.Result);
+            if (response is not null && response.IsSuccess && !string.IsNullOrEmpty(jsonData))
             {
-                if (responseVillaList.IsSuccess)
-                {
-                    var villaList = JsonConvert.DeserializeObject<List<VillaDto>>(jsonDataVillaList);
-                    villaListSelect = villaList?.Select(v => new SelectListItem { Text = v.Name, Value = v.Id.ToString() }) ?? [];
-                }
+                var villaList = JsonConvert.DeserializeObject<List<VillaDto>>(jsonData);
+                villaListSelect = villaList?.Select(v => new SelectListItem { Text = v.Name, Value = v.Id.ToString() }) ?? [];
             }
 
             var vncv = new VillaNumberCreateView
@@ -78,26 +71,26 @@ namespace RealEstate.UI.Areas.Customer.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(VillaNumberCreateView vncv)
         {
+            ApiResponse? response = null;
+            string? jsonData = null;
+
             if (ModelState.IsValid)
             {
                 var dto = vncv.Dto;
-                var response = await _api.VillaNumbers.PostAsync(dto);
-                var jsonData = Convert.ToString(response?.Result);
-                if (response is not null && jsonData is not null)
+                response = await _api.VillaNumbers.PostAsync(dto);
+                jsonData = Convert.ToString(response?.Result);
+                if (response is not null && response.IsSuccess && !string.IsNullOrEmpty(jsonData))
                 {
-                    if (response.IsSuccess)
+                    TempData["success"] = "Villa number created successfully";
+                    return RedirectToAction(nameof(Index), "VillaNumber");
+                }
+                else
+                {
+                    if (response?.ErrorMessages is not null)
                     {
-                        TempData["success"] = "Villa number created successfully";
-                        return RedirectToAction(nameof(Index), "VillaNumber");
-                    }
-                    else
-                    {
-                        if (response.ErrorMessages is not null)
+                        foreach (var (message, idx) in response.ErrorMessages.Select((e, idx) => (e, idx)))
                         {
-                            foreach (var (message, idx) in response.ErrorMessages.Select((e, idx) => (e, idx)))
-                            {
-                                ModelState.AddModelError($"CreateError[{idx}]", message);
-                            }
+                            ModelState.AddModelError($"CreateError[{idx}]", message);
                         }
                     }
                 }
@@ -105,16 +98,14 @@ namespace RealEstate.UI.Areas.Customer.Controllers
 
             IEnumerable<SelectListItem> villaListSelect = [];
 
-            var responseVillaList = await _api.Villas.GetAllAsync();
-            var jsonDataVillaList = Convert.ToString(responseVillaList?.Result);
-            if (responseVillaList is not null && jsonDataVillaList is not null)
+            response = await _api.Villas.GetAllAsync();
+            jsonData = Convert.ToString(response?.Result);
+            if (response is not null && response.IsSuccess && !string.IsNullOrEmpty(jsonData))
             {
-                if (responseVillaList.IsSuccess)
-                {
-                    var villaList = JsonConvert.DeserializeObject<List<VillaDto>>(jsonDataVillaList);
-                    villaListSelect = villaList?.Select(v => new SelectListItem { Text = v.Name, Value = v.Id.ToString() }) ?? [];
-                }
+                var villaList = JsonConvert.DeserializeObject<List<VillaDto>>(jsonData);
+                villaListSelect = villaList?.Select(v => new SelectListItem { Text = v.Name, Value = v.Id.ToString() }) ?? [];
             }
+
             vncv.VillaList = villaListSelect;
 
             return View(vncv);
@@ -129,43 +120,41 @@ namespace RealEstate.UI.Areas.Customer.Controllers
                 var response = await _api.VillaNumbers.GetAsync(entityId.Value);
                 var jsonData = Convert.ToString(response?.Result);
 
-                if (response is not null && jsonData is not null)
+                if (response is not null && response.IsSuccess && !string.IsNullOrEmpty(jsonData))
                 {
-                    if (response.IsSuccess)
+                    var villaNumber = JsonConvert.DeserializeObject<VillaNumberDto>(jsonData);
+
+                    if (villaNumber is not null)
                     {
-                        var villaNumber = JsonConvert.DeserializeObject<VillaNumberDto>(jsonData);
+                        IEnumerable<SelectListItem> villaListSelect = [];
 
-                        if (villaNumber is not null)
+                        var responseVillaList = await _api.Villas.GetAllAsync();
+                        var jsonDataVillaList = Convert.ToString(responseVillaList?.Result);
+                        if (responseVillaList is not null && jsonDataVillaList is not null)
                         {
-                            IEnumerable<SelectListItem> villaListSelect = [];
-
-                            var responseVillaList = await _api.Villas.GetAllAsync();
-                            var jsonDataVillaList = Convert.ToString(responseVillaList?.Result);
-                            if (responseVillaList is not null && jsonDataVillaList is not null)
+                            if (responseVillaList.IsSuccess)
                             {
-                                if (responseVillaList.IsSuccess)
-                                {
-                                    var villaList = JsonConvert.DeserializeObject<List<VillaDto>>(jsonDataVillaList);
-                                    villaListSelect = villaList?.Select(v => new SelectListItem { Text = v.Name, Value = v.Id.ToString() }) ?? [];
-                                }
+                                var villaList = JsonConvert.DeserializeObject<List<VillaDto>>(jsonDataVillaList);
+                                villaListSelect = villaList?.Select(v => new SelectListItem { Text = v.Name, Value = v.Id.ToString() }) ?? [];
                             }
-
-                            var villaNumberUpdateView = new VillaNumberUpdateView { Dto = villaNumber.ToUpdateDto(), VillaList = villaListSelect };
-                            return View(villaNumberUpdateView);
                         }
-                        else { return NotFound(); }
+
+                        var villaNumberUpdateView = new VillaNumberUpdateView { Dto = villaNumber.ToUpdateDto(), VillaList = villaListSelect };
+                        return View(villaNumberUpdateView);
                     }
-                    else
+                    else { return NotFound(); }
+                }
+                else
+                {
+                    if (response?.ErrorMessages is not null)
                     {
-                        if (response.ErrorMessages is not null)
+                        foreach (var (message, idx) in response.ErrorMessages.Select((e, idx) => (e, idx)))
                         {
-                            foreach (var (message, idx) in response.ErrorMessages.Select((e, idx) => (e, idx)))
-                            {
-                                ModelState.AddModelError($"UpdateError[{idx}]", message);
-                            }
+                            ModelState.AddModelError($"UpdateError[{idx}]", message);
                         }
                     }
                 }
+
             }
 
             return NotFound();
@@ -176,42 +165,39 @@ namespace RealEstate.UI.Areas.Customer.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Update(VillaNumberUpdateView vnuv)
         {
+            ApiResponse? response = null;
+
             if (ModelState.IsValid)
             {
                 var dto = vnuv.Dto;
-                var response = await _api.VillaNumbers.PutAsync(dto.VillaNo, dto);
+                response = await _api.VillaNumbers.PutAsync(dto.VillaNo, dto);
                 // var jsonData = Convert.ToString(response?.Result);
-                if (response is not null)
+                if (response is not null && response.IsSuccess)
                 {
-                    if (response.IsSuccess)
+                    TempData["success"] = "Villa number updated successfully";
+                    return RedirectToAction(nameof(Index), "VillaNumber");
+                }
+                else
+                {
+                    if (response?.ErrorMessages is not null)
                     {
-                        TempData["success"] = "Villa number updated successfully";
-                        return RedirectToAction(nameof(Index), "VillaNumber");
-                    }
-                    else
-                    {
-                        if (response.ErrorMessages is not null)
+                        foreach (var message in response.ErrorMessages)
                         {
-                            foreach (var message in response.ErrorMessages)
-                            {
-                                Console.WriteLine(message);
-                            }
+                            Console.WriteLine(message);
                         }
                     }
                 }
+
             }
 
             IEnumerable<SelectListItem> villaListSelect = [];
 
-            var responseVillaList = await _api.Villas.GetAllAsync();
-            var jsonDataVillaList = Convert.ToString(responseVillaList?.Result);
-            if (responseVillaList is not null && jsonDataVillaList is not null)
+            response = await _api.Villas.GetAllAsync();
+            var jsonData = Convert.ToString(response?.Result);
+            if (response is not null && response.IsSuccess && !string.IsNullOrEmpty(jsonData))
             {
-                if (responseVillaList.IsSuccess)
-                {
-                    var villaList = JsonConvert.DeserializeObject<List<VillaDto>>(jsonDataVillaList);
-                    villaListSelect = villaList?.Select(v => new SelectListItem { Text = v.Name, Value = v.Id.ToString() }) ?? [];
-                }
+                var villaList = JsonConvert.DeserializeObject<List<VillaDto>>(jsonData);
+                villaListSelect = villaList?.Select(v => new SelectListItem { Text = v.Name, Value = v.Id.ToString() }) ?? [];
             }
             vnuv.VillaList = villaListSelect;
 

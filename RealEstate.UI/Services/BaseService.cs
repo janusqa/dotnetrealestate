@@ -148,28 +148,27 @@ namespace RealEstate.UI.Services
                 if (withBearer)
                 {
                     var token = _tokenProvider.GetToken();
-                    var xsrfToken = _tokenProvider.GetXsrfToken();
-                    if (token is not null && xsrfToken is not null)
+                    if (token?.AccessToken is not null && token.XsrfToken is not null)
                     {
                         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
-                        client.DefaultRequestHeaders.Add("X-XSRF-TOKEN", xsrfToken);
+                        client.DefaultRequestHeaders.Add("X-XSRF-TOKEN", token.XsrfToken);
                     }
                 }
 
-                HttpResponseMessage apiResponse = await client.SendAsync(message);
-                var jsonData = await apiResponse.Content.ReadAsStringAsync();
-                var data = JsonConvert.DeserializeObject<T>(jsonData);
-                return data;
+                HttpResponseMessage httpMessage = await client.SendAsync(message);
+                var jsonContent = await httpMessage.Content.ReadAsStringAsync();
+                var apiResponse = JsonConvert.DeserializeObject<T>(jsonContent);
+                return apiResponse;
             }
             catch (Exception ex)
             {
                 var errorResponse = new ApiResponse
                 {
-                    ErrorMessages = [Convert.ToString(ex.Message)],
+                    ErrorMessages = [ex.Message],
                     IsSuccess = false
                 };
-                var res = JsonConvert.SerializeObject(errorResponse);
-                var apiResponse = JsonConvert.DeserializeObject<T>(res);
+                var resJson = JsonConvert.SerializeObject(errorResponse);
+                var apiResponse = JsonConvert.DeserializeObject<T>(resJson);
                 return apiResponse;
             }
         }

@@ -27,20 +27,17 @@ namespace RealEstate.UI.Areas.Customer.Controllers
 
             var response = await _api.Villas.GetAllAsync();
             var jsonData = Convert.ToString(response?.Result);
-            if (response is not null && jsonData is not null)
+            if (response is not null && response.IsSuccess && !string.IsNullOrEmpty(jsonData))
             {
-                if (response.IsSuccess)
+                villas = JsonConvert.DeserializeObject<List<VillaDto>>(jsonData);
+            }
+            else
+            {
+                if (response?.ErrorMessages is not null)
                 {
-                    villas = JsonConvert.DeserializeObject<List<VillaDto>>(jsonData);
-                }
-                else
-                {
-                    if (response.ErrorMessages is not null)
+                    foreach (var message in response.ErrorMessages)
                     {
-                        foreach (var message in response.ErrorMessages)
-                        {
-                            Console.WriteLine(message);
-                        }
+                        Console.WriteLine(message);
                     }
                 }
             }

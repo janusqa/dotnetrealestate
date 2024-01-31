@@ -16,38 +16,26 @@ namespace RealEstate.UI.Services
 
         public void ClearToken()
         {
-            _hca.HttpContext?.Response.Cookies.Delete(SD.JwtAccessToken);
+            _hca.HttpContext?.Response.Cookies.Delete(SD.JwtAccessTokenCookie);
             _hca.HttpContext?.Response.Cookies.Delete(SD.ApiRrefreshTokenCookie);
             _hca.HttpContext?.Response.Cookies.Delete(SD.ApiXsrfCookie);
         }
 
-        public AccessTokenDto? GetToken()
+        public TokenDto? GetToken()
         {
             try
             {
                 string? accessToken = null;
-                bool? hasAccessToken = _hca.HttpContext?.Request.Cookies.TryGetValue(SD.JwtAccessToken, out accessToken);
-                return hasAccessToken is not null
-                        && hasAccessToken.Value
-                        && accessToken is not null
-                        ? new AccessTokenDto(AccessToken: accessToken) : null;
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-        }
-
-        public string? GetXsrfToken()
-        {
-            try
-            {
+                string? refreshToken = null;
                 string? xsrfToken = null;
+                bool? hasAccessToken = _hca.HttpContext?.Request.Cookies.TryGetValue(SD.JwtAccessTokenCookie, out accessToken);
+                bool? hasRefreshToken = _hca.HttpContext?.Request.Cookies.TryGetValue(SD.ApiRrefreshTokenCookie, out refreshToken);
                 bool? hasXsrfToken = _hca.HttpContext?.Request.Cookies.TryGetValue(SD.ApiXsrfCookie, out xsrfToken);
-                return hasXsrfToken is not null
-                        && hasXsrfToken.Value
-                        && xsrfToken is not null
-                        ? xsrfToken : null;
+                if (accessToken is not null && xsrfToken is not null)
+                {
+                    return new TokenDto(AccessToken: accessToken, XsrfToken: xsrfToken, RefreshToken: refreshToken);
+                }
+                return null;
             }
             catch (Exception)
             {
@@ -55,10 +43,38 @@ namespace RealEstate.UI.Services
             }
         }
 
-        public void SetToken(AccessTokenDto accessTokenDto)
+        public void SetToken(TokenDto tokenDto)
         {
-            var cookieOptions = new CookieOptions { Expires = DateTime.UtcNow.AddDays(60) };
-            _hca.HttpContext?.Response.Cookies.Append(SD.JwtAccessToken, accessTokenDto.AccessToken, cookieOptions);
+            _hca.HttpContext?.Response.Cookies.Append(
+                SD.JwtAccessTokenCookie,
+                tokenDto.AccessToken,
+                new CookieOptions
+                {
+                    Expires = DateTime.UtcNow.AddMinutes(SD.ApiAccessTokenExpiry),
+                    Secure = true,
+                    SameSite = SameSiteMode.Lax
+                });
+            _hca.HttpContext?.Response.Cookies.Append(
+                SD.ApiXsrfCookie,
+                tokenDto.XsrfToken,
+                new CookieOptions
+                {
+                    Expires = DateTime.UtcNow.AddMinutes(SD.ApiAccessTokenExpiry),
+                    Secure = true,
+                    SameSite = SameSiteMode.Lax
+                });
+
+            if (tokenDto.RefreshToken is not null)
+                _hca.HttpContext?.Response.Cookies.Append(
+                    SD.ApiRrefreshTokenCookie,
+                    tokenDto.RefreshToken,
+                    new CookieOptions
+                    {
+                        Expires = DateTime.UtcNow.AddMinutes(SD.ApiRefreshTokenExpiry),
+                        HttpOnly = true,
+                        Secure = true,
+                        SameSite = SameSiteMode.Lax
+                    });
         }
     }
 }

@@ -50,7 +50,7 @@ builder.Services.AddScoped<IDBInitilizer, DBInitilizer>();
 builder.Services.AddScoped<ICustomJwtBearerHandler, CustomJwtBearerHandler>();
 
 // add (jwt, could be other types of auth too) authentication
-var JwtAccessSecret = builder.Configuration.GetValue<string>("ApiSettings:JwtAccessSecret") ?? "";
+// var JwtAccessSecret = builder.Configuration.GetValue<string>("ApiSettings:JwtAccessSecret") ?? "";
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

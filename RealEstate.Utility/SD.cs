@@ -11,7 +11,7 @@
         }
 
         // sessions management
-        public const string JwtAccessToken = "JwtAccessToken";
+        public const string JwtAccessTokenCookie = "JwtAccessToken";
 
         // API Constants
         public const string ApiVersion = "v2";

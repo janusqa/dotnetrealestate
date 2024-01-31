@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using RealEstate.DataAccess.UnitOfWork.IUnitOfWork;
 using RealEstate.Dto;
-using RealEstate.Jwt;
 using RealEstate.Models.Api;
 using RealEstate.Models.Domain;
 using RealEstate.Utility;
@@ -68,7 +67,13 @@ namespace RealEstate.Controllers
                                 MaxAge = DateTime.UtcNow.AddMinutes(SD.ApiAccessTokenExpiry) - DateTime.UtcNow
                             });
 
-                        return Ok(new ApiResponse { IsSuccess = true, Result = acccessTokenDto, StatusCode = System.Net.HttpStatusCode.OK });
+                        // usually we should just return acccess token in json, refresh token in a httpOnly cookie and xsrf in a regular cookie
+                        // return Ok(new ApiResponse { IsSuccess = true, Result = acccessTokenDto, StatusCode = System.Net.HttpStatusCode.OK });
+
+                        // BUT our front-end is an .net core mvc app so we need to do things differently.  We must
+                        // return access, refresh and xsrf all in the json and let the mvc app set and clear cookies for browser
+                        return Ok(new ApiResponse { IsSuccess = true, Result = result, StatusCode = System.Net.HttpStatusCode.OK });
+
                     }
                     return new ObjectResult(new ApiResponse { IsSuccess = false, ErrorMessages = ["Invalid credentials"], StatusCode = System.Net.HttpStatusCode.Unauthorized }) { StatusCode = StatusCodes.Status401Unauthorized };
                 }
@@ -96,10 +101,45 @@ namespace RealEstate.Controllers
                 {
                     var result = await _uow.ApplicationUsers.Register(request);
 
-                    if (result is null)
-                        return new ObjectResult(new ApiResponse { IsSuccess = false, ErrorMessages = ["Registration failed"], StatusCode = System.Net.HttpStatusCode.Unauthorized }) { StatusCode = StatusCodes.Status401Unauthorized };
+                    if (result?.AccessToken is not null && result?.RefreshToken is not null && result?.XsrfToken is not null)
+                    {
+                        var acccessTokenDto = result.ToAccessTokenDto();
 
-                    return Ok(new ApiResponse { IsSuccess = true, Result = result, StatusCode = System.Net.HttpStatusCode.OK });
+                        // refresh
+                        Response.Cookies.Append(
+                            SD.ApiRrefreshTokenCookie,
+                            result.RefreshToken,
+                            new CookieOptions()
+                            {
+                                HttpOnly = true,
+                                Secure = true,
+                                SameSite = SameSiteMode.Lax,
+                                Path = "/",
+                                MaxAge = DateTime.UtcNow.AddMinutes(SD.ApiRefreshTokenExpiry) - DateTime.UtcNow
+                            });
+
+                        // xsrf
+                        Response.Cookies.Append(
+                            SD.ApiXsrfCookie,
+                            result.XsrfToken,
+                            new CookieOptions()
+                            {
+                                HttpOnly = false,
+                                Secure = true,
+                                SameSite = SameSiteMode.Lax,
+                                Path = "/",
+                                MaxAge = DateTime.UtcNow.AddMinutes(SD.ApiAccessTokenExpiry) - DateTime.UtcNow
+                            });
+
+                        // usually we should just return acccess token in json, refresh token in a httpOnly cookie and xsrf in a regular cookie
+                        // return Ok(new ApiResponse { IsSuccess = true, Result = acccessTokenDto, StatusCode = System.Net.HttpStatusCode.OK });
+
+                        // BUT our front-end is an .net core mvc app so we need to do things differently.  We must
+                        // return access, refresh and xsrf all in the json and let the mvc app set and clear cookies for browser
+                        return Ok(new ApiResponse { IsSuccess = true, Result = result, StatusCode = System.Net.HttpStatusCode.OK });
+                    }
+                    return new ObjectResult(new ApiResponse { IsSuccess = false, ErrorMessages = ["Registration failed"], StatusCode = System.Net.HttpStatusCode.Unauthorized }) { StatusCode = StatusCodes.Status401Unauthorized };
+
                 }
                 else
                 {
