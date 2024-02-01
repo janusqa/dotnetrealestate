@@ -19,6 +19,7 @@ builder.Services.AddHttpClient<IApiService, ApiService>("RealEstateAPI")
         return handler;
     });
 
+builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddScoped<IApiService, ApiService>();
 builder.Services.AddScoped<ITokenProvider, TokenProvider>();
 
@@ -28,7 +29,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 {
     options.Cookie.HttpOnly = true;
     options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
-    // we needed to set LoginPath as it was goint to the razor page for
+    // we needed to set LoginPath as it was going to the razor page for
     // identity which we ar not using yet. Our login page is "Auth/Login"
     // "not /Identity/Login" OR "/Account/Login" 
     options.LoginPath = "/Customer/Auth/Login";
@@ -37,7 +38,6 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 });
 
 // enable sessions
-builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {

@@ -7,8 +7,9 @@ namespace RealEstate.UI.Services
     public class AuthService : BaseService<ApiResponse>, IAuthService
     {
         private readonly string _url;
-        public AuthService(IHttpClientFactory httpClient, ITokenProvider tokenProvider, string url)
-            : base(httpClient, tokenProvider, url)
+
+        public AuthService(IHttpClientFactory httpClient, IHttpContextAccessor httpAccessor, ITokenProvider tokenProvider, string url)
+            : base(httpClient, httpAccessor, tokenProvider, url)
         {
             _url = url;
         }
@@ -43,16 +44,6 @@ namespace RealEstate.UI.Services
                     Data = dto,
                     Url = $"{_url}/register"
                 }, withBearer: false);
-        }
-
-        public async Task<ApiResponse?> RefreshAsync()
-        {
-            return await RequestAsync(
-                new ApiRequest
-                {
-                    ApiMethod = SD.ApiMethod.GET,
-                    Url = $"{_url}/refresh"
-                });
         }
     }
 }

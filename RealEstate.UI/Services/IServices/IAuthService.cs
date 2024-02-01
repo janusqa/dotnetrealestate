@@ -7,6 +7,5 @@ namespace RealEstate.UI.Services.IServices
         Task<ApiResponse?> LoginAsync<U>(U dto);
         Task<ApiResponse?> RegisterAsync<U>(U dto);
         Task<ApiResponse?> LogoutAsync();
-        Task<ApiResponse?> RefreshAsync();
     }
 }

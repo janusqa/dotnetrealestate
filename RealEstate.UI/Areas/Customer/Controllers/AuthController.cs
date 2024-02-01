@@ -80,7 +80,6 @@ namespace RealEstate.UI.Areas.Customer.Controllers
                             return RedirectToAction(nameof(AccessDenied), "Auth");
                         }
                     }
-
                 }
                 else
                 {

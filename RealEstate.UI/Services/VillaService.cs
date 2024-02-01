@@ -8,8 +8,8 @@ namespace RealEstate.UI.Services
 {
     public class VillaService : BaseService<ApiResponse>, IVillaService
     {
-        public VillaService(IHttpClientFactory httpClient, ITokenProvider tokenProvider, string url)
-            : base(httpClient, tokenProvider, url)
+        public VillaService(IHttpClientFactory httpClient, IHttpContextAccessor httpAccessor, ITokenProvider tokenProvider, string url)
+            : base(httpClient, httpAccessor, tokenProvider, url)
         {
 
         }

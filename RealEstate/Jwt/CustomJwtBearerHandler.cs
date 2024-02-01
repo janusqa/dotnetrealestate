@@ -183,7 +183,7 @@ namespace RealEstate.Jwt
 
                             var ticket = new AuthenticationTicket(claimsPrincipal, Scheme.Name);
 
-                            if (Options.SaveToken)
+                            if (Options.SaveToken && !isRefresh)
                             {
                                 ticket.Properties.StoreTokens(
                                 [
@@ -220,13 +220,13 @@ namespace RealEstate.Jwt
             }
         }
 
-        private static DateTime? GetSafeDateTime(DateTime dateTime)
-        {
-            // Assigning DateTime.MinValue or default(DateTime) to a DateTimeOffset when in a UTC+X timezone will throw
-            // Since we don't really care about DateTime.MinValue in this case let's just set the field to null
-            if (dateTime == DateTime.MinValue) return null;
-            return dateTime;
-        }
+        // private static DateTime? GetSafeDateTime(DateTime dateTime)
+        // {
+        //     // Assigning DateTime.MinValue or default(DateTime) to a DateTimeOffset when in a UTC+X timezone will throw
+        //     // Since we don't really care about DateTime.MinValue in this case let's just set the field to null
+        //     if (dateTime == DateTime.MinValue) return null;
+        //     return dateTime;
+        // }
 
         [GeneratedRegex(@"/users/refresh$", RegexOptions.IgnoreCase | RegexOptions.Compiled, "en-US")]
         private static partial Regex RefTokenReqRegex();

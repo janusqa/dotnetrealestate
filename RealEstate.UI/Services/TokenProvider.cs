@@ -45,6 +45,7 @@ namespace RealEstate.UI.Services
 
         public void SetToken(TokenDto tokenDto)
         {
+            ClearToken();
             _hca.HttpContext?.Response.Cookies.Append(
                 SD.JwtAccessTokenCookie,
                 tokenDto.AccessToken,
@@ -54,6 +55,7 @@ namespace RealEstate.UI.Services
                     Secure = true,
                     SameSite = SameSiteMode.Lax
                 });
+
             _hca.HttpContext?.Response.Cookies.Append(
                 SD.ApiXsrfCookie,
                 tokenDto.XsrfToken,
