@@ -15,6 +15,6 @@ namespace RealEstate.Dto
     );
 
     public record AccessTokenDto(
-        string AccessToken
+        string? AccessToken = null
     );
 }

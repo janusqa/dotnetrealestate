@@ -1,12 +1,13 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using RealEstate.UI.ApiService;
+using RealEstate.UI.Extensions;
 using RealEstate.UI.Services;
 using RealEstate.UI.Services.IServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(f => f.Filters.Add(new RedirectOnUnauthorized()));
 
 builder.Services.AddHttpClient<IApiService, ApiService>("RealEstateAPI")
     .ConfigurePrimaryHttpMessageHandler(() =>

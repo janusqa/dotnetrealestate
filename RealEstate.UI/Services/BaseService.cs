@@ -181,7 +181,7 @@ namespace RealEstate.UI.Services
 
                     if (token?.RefreshToken is null)
                     {
-                        var errorsDefault = "You are not authorized to perform this actions. Please login";
+                        var errorsDefault = "You are not authorized to perform this action. Please login.";
                         var jsonErrors = await httpResponseMessage.Content.ReadAsStringAsync();
                         if (jsonErrors is not null && !string.IsNullOrEmpty(jsonErrors))
                         {
@@ -240,12 +240,12 @@ namespace RealEstate.UI.Services
                         {
                             if (_httpAccessor.HttpContext is not null) await _httpAccessor.HttpContext.SignOutAsync();
                             _tokenProvider.ClearToken();
-                            throw new AuthenticationFailureException("You are not authorized to perform this actions. Please login.");
+                            throw new AuthenticationFailureException("You are not authorized to perform this action. Please login.");
                         }
                     }
                     else
                     {
-                        throw new AuthenticationFailureException("You are not authorized to perform this actions. Please login.");
+                        throw new AuthenticationFailureException("You are not authorized to perform this action. Please login.");
                     }
                 }
 
@@ -288,17 +288,18 @@ namespace RealEstate.UI.Services
                     throw new Exception("Oops, something went wrong. Please try again later");
                 }
             }
-            catch (AuthenticationFailureException ex)
+            catch (AuthenticationFailureException)
             {
-                var errorResponse = new ApiResponse
-                {
-                    ErrorMessages = [ex.Message],
-                    IsSuccess = false,
-                    StatusCode = HttpStatusCode.Unauthorized
-                };
-                var jsonError = JsonConvert.SerializeObject(errorResponse);
-                var apiResponse = JsonConvert.DeserializeObject<T>(jsonError);
-                return apiResponse;
+                throw;
+                // var errorResponse = new ApiResponse
+                // {
+                //     ErrorMessages = [ex.Message],
+                //     IsSuccess = false,
+                //     StatusCode = HttpStatusCode.Unauthorized
+                // };
+                // var jsonError = JsonConvert.SerializeObject(errorResponse);
+                // var apiResponse = JsonConvert.DeserializeObject<T>(jsonError);
+                // return apiResponse;
             }
             catch (Exception ex)
             {

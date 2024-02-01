@@ -535,4 +535,13 @@ Image uploads
 ---
 1. Enable static files in api project
    add "app.UseStaticFiles()" to program.cs
-2. 
+
+Exception Filters via Extensions
+---
+1. create "Extensions" Direction
+2. create your class, inherited from IExceptionFilter
+3. In programs.cs set up in the services section by extending builder.Services.AddControllersWithViews
+   ```
+   builder.Services.AddControllersWithViews(f => f.Filters.Add(new RedirectOnUnauthorized()));
+
+   ```
