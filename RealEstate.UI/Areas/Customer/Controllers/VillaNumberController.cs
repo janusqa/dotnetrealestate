@@ -24,20 +24,10 @@ namespace RealEstate.UI.Areas.Customer.Controllers
             var villaNumbers = new List<VillaNumberDto>();
 
             var response = await _api.VillaNumbers.GetAllAsync();
-            var jsonData = Convert.ToString(response?.Result);
+            var jsonData = JsonConvert.SerializeObject(response?.Result);
             if (response is not null && response.IsSuccess && !string.IsNullOrEmpty(jsonData))
             {
-                villaNumbers = JsonConvert.DeserializeObject<List<VillaNumberDto>>(jsonData);
-            }
-            else
-            {
-                if (response?.ErrorMessages is not null)
-                {
-                    foreach (var message in response.ErrorMessages)
-                    {
-                        Console.WriteLine(message);
-                    }
-                }
+                villaNumbers = JsonConvert.DeserializeObject<List<VillaNumberDto>>(jsonData) ?? [];
             }
 
             return View(villaNumbers);
@@ -50,7 +40,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
             IEnumerable<SelectListItem> villaListSelect = [];
 
             var response = await _api.Villas.GetAllAsync();
-            var jsonData = Convert.ToString(response?.Result);
+            var jsonData = JsonConvert.SerializeObject(response?.Result);
             if (response is not null && response.IsSuccess && !string.IsNullOrEmpty(jsonData))
             {
                 var villaList = JsonConvert.DeserializeObject<List<VillaDto>>(jsonData);
@@ -78,8 +68,8 @@ namespace RealEstate.UI.Areas.Customer.Controllers
             {
                 var dto = vncv.Dto;
                 response = await _api.VillaNumbers.PostAsync(dto);
-                jsonData = Convert.ToString(response?.Result);
-                if (response is not null && response.IsSuccess && !string.IsNullOrEmpty(jsonData))
+                // jsonData = JsonConvert.SerializeObject(response?.Result);
+                if (response is not null && response.IsSuccess)
                 {
                     TempData["success"] = "Villa number created successfully";
                     return RedirectToAction(nameof(Index), "VillaNumber");
@@ -99,7 +89,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
             IEnumerable<SelectListItem> villaListSelect = [];
 
             response = await _api.Villas.GetAllAsync();
-            jsonData = Convert.ToString(response?.Result);
+            jsonData = JsonConvert.SerializeObject(response?.Result);
             if (response is not null && response.IsSuccess && !string.IsNullOrEmpty(jsonData))
             {
                 var villaList = JsonConvert.DeserializeObject<List<VillaDto>>(jsonData);
@@ -118,7 +108,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
             {
 
                 var response = await _api.VillaNumbers.GetAsync(entityId.Value);
-                var jsonData = Convert.ToString(response?.Result);
+                var jsonData = JsonConvert.SerializeObject(response?.Result);
 
                 if (response is not null && response.IsSuccess && !string.IsNullOrEmpty(jsonData))
                 {
@@ -129,20 +119,16 @@ namespace RealEstate.UI.Areas.Customer.Controllers
                         IEnumerable<SelectListItem> villaListSelect = [];
 
                         var responseVillaList = await _api.Villas.GetAllAsync();
-                        var jsonDataVillaList = Convert.ToString(responseVillaList?.Result);
-                        if (responseVillaList is not null && jsonDataVillaList is not null)
+                        var jsonDataVillaList = JsonConvert.SerializeObject(responseVillaList?.Result);
+                        if (responseVillaList is not null && responseVillaList.IsSuccess)
                         {
-                            if (responseVillaList.IsSuccess)
-                            {
-                                var villaList = JsonConvert.DeserializeObject<List<VillaDto>>(jsonDataVillaList);
-                                villaListSelect = villaList?.Select(v => new SelectListItem { Text = v.Name, Value = v.Id.ToString() }) ?? [];
-                            }
+                            var villaList = JsonConvert.DeserializeObject<List<VillaDto>>(jsonDataVillaList);
+                            villaListSelect = villaList?.Select(v => new SelectListItem { Text = v.Name, Value = v.Id.ToString() }) ?? [];
                         }
 
                         var villaNumberUpdateView = new VillaNumberUpdateView { Dto = villaNumber.ToUpdateDto(), VillaList = villaListSelect };
                         return View(villaNumberUpdateView);
                     }
-                    else { return NotFound(); }
                 }
                 else
                 {
@@ -171,7 +157,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
             {
                 var dto = vnuv.Dto;
                 response = await _api.VillaNumbers.PutAsync(dto.VillaNo, dto);
-                // var jsonData = Convert.ToString(response?.Result);
+                // var jsonData = JsonConvert.SerializeObject(response?.Result);
                 if (response is not null && response.IsSuccess)
                 {
                     TempData["success"] = "Villa number updated successfully";
@@ -181,9 +167,9 @@ namespace RealEstate.UI.Areas.Customer.Controllers
                 {
                     if (response?.ErrorMessages is not null)
                     {
-                        foreach (var message in response.ErrorMessages)
+                        foreach (var (message, idx) in response.ErrorMessages.Select((e, idx) => (e, idx)))
                         {
-                            Console.WriteLine(message);
+                            ModelState.AddModelError($"UpdateError[{idx}]", message);
                         }
                     }
                 }
@@ -193,7 +179,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
             IEnumerable<SelectListItem> villaListSelect = [];
 
             response = await _api.Villas.GetAllAsync();
-            var jsonData = Convert.ToString(response?.Result);
+            var jsonData = JsonConvert.SerializeObject(response?.Result);
             if (response is not null && response.IsSuccess && !string.IsNullOrEmpty(jsonData))
             {
                 var villaList = JsonConvert.DeserializeObject<List<VillaDto>>(jsonData);
@@ -219,15 +205,15 @@ namespace RealEstate.UI.Areas.Customer.Controllers
                     TempData["success"] = "Villa number deleted successfully!";
                     return Ok(response);
                 }
+                var errorMessages = response?.ErrorMessages is not null ? string.Join(" | ", response.ErrorMessages) : "Oops, Something went wrong";
+                TempData["error"] = "Oops, Something went wrong";
+                return new ObjectResult(new ApiResponse { IsSuccess = false, ErrorMessages = ["Oops, Something went wrong"], StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
             }
             catch (Exception ex)
             {
                 TempData["error"] = ex.Message;
                 return new ObjectResult(new ApiResponse { IsSuccess = false, ErrorMessages = [ex.Message], StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
             }
-
-            TempData["error"] = "Oops, Something went wrong";
-            return new ObjectResult(new ApiResponse { IsSuccess = false, ErrorMessages = ["Oops, Something went wrong"], StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
         }
         #endregion
     }

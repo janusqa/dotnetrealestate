@@ -28,14 +28,10 @@ namespace RealEstate.UI.Services
                 string? accessToken = null;
                 string? refreshToken = null;
                 string? xsrfToken = null;
-                bool? hasAccessToken = _hca.HttpContext?.Request.Cookies.TryGetValue(SD.JwtAccessTokenCookie, out accessToken);
-                bool? hasRefreshToken = _hca.HttpContext?.Request.Cookies.TryGetValue(SD.ApiRrefreshTokenCookie, out refreshToken);
-                bool? hasXsrfToken = _hca.HttpContext?.Request.Cookies.TryGetValue(SD.ApiXsrfCookie, out xsrfToken);
-                if (accessToken is not null && xsrfToken is not null)
-                {
-                    return new TokenDto(AccessToken: accessToken, XsrfToken: xsrfToken, RefreshToken: refreshToken);
-                }
-                return null;
+                bool hasAccessToken = _hca.HttpContext?.Request.Cookies.TryGetValue(SD.JwtAccessTokenCookie, out accessToken) ?? false;
+                bool hasRefreshToken = _hca.HttpContext?.Request.Cookies.TryGetValue(SD.ApiRrefreshTokenCookie, out refreshToken) ?? false;
+                bool hasXsrfToken = _hca.HttpContext?.Request.Cookies.TryGetValue(SD.ApiXsrfCookie, out xsrfToken) ?? false;
+                return new TokenDto(AccessToken: accessToken, XsrfToken: xsrfToken, RefreshToken: refreshToken);
             }
             catch (Exception)
             {
@@ -46,25 +42,28 @@ namespace RealEstate.UI.Services
         public void SetToken(TokenDto tokenDto)
         {
             ClearToken();
-            _hca.HttpContext?.Response.Cookies.Append(
-                SD.JwtAccessTokenCookie,
-                tokenDto.AccessToken,
-                new CookieOptions
-                {
-                    Expires = DateTime.UtcNow.AddMinutes(SD.ApiAccessTokenExpiry),
-                    Secure = true,
-                    SameSite = SameSiteMode.Lax
-                });
 
-            _hca.HttpContext?.Response.Cookies.Append(
-                SD.ApiXsrfCookie,
-                tokenDto.XsrfToken,
-                new CookieOptions
-                {
-                    Expires = DateTime.UtcNow.AddMinutes(SD.ApiAccessTokenExpiry),
-                    Secure = true,
-                    SameSite = SameSiteMode.Lax
-                });
+            if (tokenDto.AccessToken is not null)
+                _hca.HttpContext?.Response.Cookies.Append(
+                    SD.JwtAccessTokenCookie,
+                    tokenDto.AccessToken,
+                    new CookieOptions
+                    {
+                        Expires = DateTime.UtcNow.AddMinutes(SD.ApiAccessTokenExpiry),
+                        Secure = true,
+                        SameSite = SameSiteMode.Lax
+                    });
+
+            if (tokenDto.XsrfToken is not null)
+                _hca.HttpContext?.Response.Cookies.Append(
+                    SD.ApiXsrfCookie,
+                    tokenDto.XsrfToken,
+                    new CookieOptions
+                    {
+                        Expires = DateTime.UtcNow.AddMinutes(SD.ApiAccessTokenExpiry),
+                        Secure = true,
+                        SameSite = SameSiteMode.Lax
+                    });
 
             if (tokenDto.RefreshToken is not null)
                 _hca.HttpContext?.Response.Cookies.Append(

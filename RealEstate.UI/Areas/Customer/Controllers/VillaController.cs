@@ -23,23 +23,12 @@ namespace RealEstate.UI.Areas.Customer.Controllers
             var villas = new List<VillaDto>();
 
             var response = await _api.Villas.GetAllAsync();
-            var jsonData = Convert.ToString(response?.Result);
+            var jsonData = JsonConvert.SerializeObject(response?.Result);
             if (response is not null && response.IsSuccess && !string.IsNullOrEmpty(jsonData))
             {
 
-                villas = JsonConvert.DeserializeObject<List<VillaDto>>(jsonData);
+                villas = JsonConvert.DeserializeObject<List<VillaDto>>(jsonData) ?? [];
             }
-            else
-            {
-                if (response?.ErrorMessages is not null)
-                {
-                    foreach (var message in response.ErrorMessages)
-                    {
-                        Console.WriteLine(message);
-                    }
-                }
-            }
-
 
             return View(villas);
         }
@@ -59,24 +48,25 @@ namespace RealEstate.UI.Areas.Customer.Controllers
             if (ModelState.IsValid)
             {
                 var response = await _api.Villas.PostAsync(dto, SD.ContentType.MultiPartFormData);
-                var jsonData = Convert.ToString(response?.Result);
-                if (response is not null && response.IsSuccess && !string.IsNullOrEmpty(jsonData))
+                // var jsonData = JsonConvert.SerializeObject(response?.Result);
+                if (response is not null && response.IsSuccess)
                 {
                     TempData["success"] = "Villa created successfully!";
                     return RedirectToAction(nameof(Index), "Villa");
                 }
-                else
-                {
-                    if (response?.ErrorMessages is not null)
-                    {
-                        foreach (var (message, idx) in response.ErrorMessages.Select((e, idx) => (e, idx)))
-                        {
-                            ModelState.AddModelError($"CreateError[{idx}]", message);
-                        }
-                    }
-                }
+                // else
+                // {
+                //     if (response?.ErrorMessages is not null)
+                //     {
+                //         foreach (var (message, idx) in response.ErrorMessages.Select((e, idx) => (e, idx)))
+                //         {
+                //             ModelState.AddModelError($"CreateError[{idx}]", message);
+                //         }
+                //     }
+                // }
 
             }
+            TempData["error"] = "Villa creation failed!";
             return View(dto);
         }
 
@@ -86,22 +76,11 @@ namespace RealEstate.UI.Areas.Customer.Controllers
             if (entityId is not null && entityId > 0)
             {
                 var response = await _api.Villas.GetAsync(entityId.Value);
-                var jsonData = Convert.ToString(response?.Result);
+                var jsonData = JsonConvert.SerializeObject(response?.Result);
                 if (response is not null && response.IsSuccess && !string.IsNullOrEmpty(jsonData))
                 {
                     var villa = JsonConvert.DeserializeObject<VillaDto>(jsonData);
                     if (villa is not null) return View(villa.ToUpdateDto());
-                    else return NotFound();
-                }
-                else
-                {
-                    if (response?.ErrorMessages is not null)
-                    {
-                        foreach (var message in response.ErrorMessages)
-                        {
-                            Console.WriteLine(message);
-                        }
-                    }
                 }
             }
 
@@ -116,23 +95,14 @@ namespace RealEstate.UI.Areas.Customer.Controllers
             if (ModelState.IsValid)
             {
                 var response = await _api.Villas.PutAsync(dto.Id, dto, SD.ContentType.MultiPartFormData);
-                // var jsonData = Convert.ToString(response?.Result);
+                // var jsonData = JsonConvert.SerializeObject(response?.Result);
                 if (response is not null && response.IsSuccess)
                 {
                     TempData["success"] = "Villa updated successfully!";
                     return RedirectToAction(nameof(Index), "Villa");
                 }
-                else
-                {
-                    if (response?.ErrorMessages is not null)
-                    {
-                        foreach (var (message, idx) in response.ErrorMessages.Select((e, idx) => (e, idx)))
-                        {
-                            ModelState.AddModelError($"UpdateError[{idx}]", message);
-                        }
-                    }
-                }
             }
+            TempData["error"] = "Unable to update villa";
             return View(dto);
         }
 
@@ -151,15 +121,15 @@ namespace RealEstate.UI.Areas.Customer.Controllers
                     TempData["success"] = "Villa deleted successfully!";
                     return Ok(response);
                 }
+                var errorMessages = response?.ErrorMessages is not null ? string.Join(" | ", response.ErrorMessages) : "Oops, Something went wrong";
+                TempData["error"] = errorMessages;
+                return new ObjectResult(new ApiResponse { IsSuccess = false, ErrorMessages = [errorMessages], StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
             }
             catch (Exception ex)
             {
                 TempData["error"] = ex.Message;
                 return new ObjectResult(new ApiResponse { IsSuccess = false, ErrorMessages = [ex.Message], StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
             }
-
-            TempData["error"] = "Oops, Something went wrong";
-            return new ObjectResult(new ApiResponse { IsSuccess = false, ErrorMessages = ["Oops, Something went wrong"], StatusCode = System.Net.HttpStatusCode.InternalServerError }) { StatusCode = StatusCodes.Status500InternalServerError };
         }
         #endregion
     }

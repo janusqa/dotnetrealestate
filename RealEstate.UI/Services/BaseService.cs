@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text;
@@ -173,12 +174,31 @@ namespace RealEstate.UI.Services
                 // 1. If statuscode is authorized continure processing
                 // 2. If statuscode is unauthorized and access token is expired. Refresh access token (using refresh token).
 
-                if (httpResponseMessage.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+
+                if (httpResponseMessage.StatusCode == HttpStatusCode.Unauthorized)
                 {
                     var token = _tokenProvider.GetToken();
 
                     if (token?.RefreshToken is null)
-                        throw new AuthenticationFailureException("You are not authorized to perform this actions. Please login.");
+                    {
+                        var errorsDefault = "You are not authorized to perform this actions. Please login";
+                        var jsonErrors = await httpResponseMessage.Content.ReadAsStringAsync();
+                        if (jsonErrors is not null && !string.IsNullOrEmpty(jsonErrors))
+                        {
+                            var response = JsonConvert.DeserializeObject<ApiResponse>(jsonErrors);
+                            jsonErrors = JsonConvert.SerializeObject(response?.ErrorMessages);
+                            if (response is not null && !string.IsNullOrEmpty(jsonErrors))
+                            {
+                                var errorMessages = JsonConvert.DeserializeObject<List<string>>(jsonErrors);
+                                if (errorMessages is not null && errorMessages.Count != 0)
+                                {
+                                    errorsDefault = string.Join(" | ", errorMessages);
+                                }
+                            }
+                        }
+
+                        throw new AuthenticationFailureException(errorsDefault);
+                    }
 
                     var jwtTokenHandler = new JsonWebTokenHandler();
                     var refreshToken = jwtTokenHandler.ReadJsonWebToken(token.RefreshToken);
@@ -196,7 +216,7 @@ namespace RealEstate.UI.Services
                         )
                     )
                     {
-                        var refreshTokenDto = await RefreshAsync(client, token.RefreshToken);
+                        var refreshTokenDto = await RefreshTokenAsync(client, token.RefreshToken);
                         if (refreshTokenDto?.AccessToken is not null && refreshTokenDto.XsrfToken is not null)
                         {
                             var jwt = jwtTokenHandler.ReadJsonWebToken(refreshTokenDto.AccessToken);
@@ -234,8 +254,34 @@ namespace RealEstate.UI.Services
                 {
                     // Success (response could still be a bad request etc. though)
                     // this just indicates a valid response that is not a 401 Unauthorized
-                    var apiResponse = JsonConvert.DeserializeObject<T>(jsonData);
-                    return apiResponse;
+                    // Note we conrcretely deserialize to an ApIResponse. Seems to negate
+                    // the benefits of having this class as a generic but se le vie.
+                    var apiResponse = JsonConvert.DeserializeObject<ApiResponse>(jsonData);
+
+                    var errorMessages = new List<string>();
+                    errorMessages = httpResponseMessage.StatusCode switch
+                    {
+                        HttpStatusCode.NotFound => [.. errorMessages, "Not Found"],
+                        HttpStatusCode.Forbidden => [.. errorMessages, "Access Denied"],
+                        HttpStatusCode.Unauthorized => [.. errorMessages, "Unauthorized"],
+                        HttpStatusCode.InternalServerError => [.. errorMessages, "Internal Server Error"],
+                        _ => ["Oops, something went wrong. Please try again later"]
+                    };
+
+                    if (apiResponse is not null)
+                    {
+                        apiResponse.StatusCode = httpResponseMessage.StatusCode;
+                        apiResponse.ErrorMessages = apiResponse.ErrorMessages is not null
+                            ? [.. apiResponse.ErrorMessages, .. errorMessages]
+                            : new List<string>(errorMessages);
+                        jsonData = JsonConvert.SerializeObject(apiResponse);
+                        var response = JsonConvert.DeserializeObject<T>(jsonData);
+                        return response;
+                    }
+                    else
+                    {
+                        throw new Exception(string.Join(" | ", errorMessages));
+                    }
                 }
                 else
                 {
@@ -248,7 +294,7 @@ namespace RealEstate.UI.Services
                 {
                     ErrorMessages = [ex.Message],
                     IsSuccess = false,
-                    StatusCode = System.Net.HttpStatusCode.Unauthorized
+                    StatusCode = HttpStatusCode.Unauthorized
                 };
                 var jsonError = JsonConvert.SerializeObject(errorResponse);
                 var apiResponse = JsonConvert.DeserializeObject<T>(jsonError);
@@ -260,7 +306,7 @@ namespace RealEstate.UI.Services
                 {
                     ErrorMessages = [ex.Message],
                     IsSuccess = false,
-                    StatusCode = System.Net.HttpStatusCode.InternalServerError
+                    StatusCode = HttpStatusCode.InternalServerError
                 };
                 var jsonError = JsonConvert.SerializeObject(errorResponse);
                 var apiResponse = JsonConvert.DeserializeObject<T>(jsonError);
@@ -268,7 +314,7 @@ namespace RealEstate.UI.Services
             }
         }
 
-        private async Task<TokenDto?> RefreshAsync(HttpClient client, string refreshToken)
+        private async Task<TokenDto?> RefreshTokenAsync(HttpClient client, string refreshToken)
         {
             Uri url = new Uri(_url);
             string baseUrl = $"{url.Scheme}://{url.Host}:{url.Port}";
@@ -283,7 +329,7 @@ namespace RealEstate.UI.Services
             if (jsonData is not null && !string.IsNullOrEmpty(jsonData))
             {
                 var response = JsonConvert.DeserializeObject<ApiResponse>(jsonData);
-                jsonData = Convert.ToString(response?.Result);
+                jsonData = JsonConvert.SerializeObject(response?.Result);
                 if (response is not null && response.IsSuccess && !string.IsNullOrEmpty(jsonData))
                 {
                     var tokenDto = JsonConvert.DeserializeObject<TokenDto>(jsonData);

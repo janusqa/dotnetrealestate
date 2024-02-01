@@ -38,7 +38,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
             if (ModelState.IsValid)
             {
                 var response = await _api.ApplicationUsers.LoginAsync(dto);
-                var jsonData = Convert.ToString(response?.Result);
+                var jsonData = JsonConvert.SerializeObject(response?.Result);
                 if (response is not null && response.IsSuccess && !string.IsNullOrEmpty(jsonData))
                 {
                     var jwt = JsonConvert.DeserializeObject<TokenDto>(jsonData);
@@ -55,11 +55,11 @@ namespace RealEstate.UI.Areas.Customer.Controllers
                         // we should really be only returning a token. But hey this is a demo
                         // Let us now retrive the claims from the Token.
 
-                        var jwtTokenHandler = new JsonWebTokenHandler();
-                        var jwtToken = jwtTokenHandler.ReadJsonWebToken(jwt.AccessToken);
-
                         try
                         {
+                            var jwtTokenHandler = new JsonWebTokenHandler();
+                            var jwtToken = jwtTokenHandler.ReadJsonWebToken(jwt.AccessToken);
+
                             // This is an example of how to read a claim from a token
                             // var uniqueNameClaim = jwtToken.Claims.First(c => c.Type == "unique_name").Value
                             var claims = new List<Claim> {
@@ -74,10 +74,10 @@ namespace RealEstate.UI.Areas.Customer.Controllers
                             _tokenProvider.SetToken(jwt);
                             return RedirectToAction(nameof(Index), "Home");
                         }
-                        catch (ArgumentNullException ex)
+                        catch (Exception ex)
                         {
-                            Console.WriteLine($"Jwt Error: {ex.Message}");
-                            return RedirectToAction(nameof(AccessDenied), "Auth");
+                            TempData["error"] = ex.Message;
+                            return View(dto);
                         }
                     }
                 }
@@ -90,7 +90,7 @@ namespace RealEstate.UI.Areas.Customer.Controllers
                 }
             }
 
-            return View();
+            return View(dto);
         }
 
 
@@ -114,17 +114,17 @@ namespace RealEstate.UI.Areas.Customer.Controllers
             if (ModelState.IsValid)
             {
                 var response = await _api.ApplicationUsers.RegisterAsync(dto);
-                var jsonData = Convert.ToString(response?.Result);
+                var jsonData = JsonConvert.SerializeObject(response?.Result);
                 if (response is not null && response.IsSuccess && !string.IsNullOrEmpty(jsonData))
                 {
                     var jwt = JsonConvert.DeserializeObject<TokenDto>(jsonData);
                     if (jwt is not null && jwt.AccessToken is not null)
                     {
-                        var jwtTokenHandler = new JsonWebTokenHandler();
-                        var jwtToken = jwtTokenHandler.ReadJsonWebToken(jwt.AccessToken);
-
                         try
                         {
+                            var jwtTokenHandler = new JsonWebTokenHandler();
+                            var jwtToken = jwtTokenHandler.ReadJsonWebToken(jwt.AccessToken);
+
                             // This is an example of how to read a claim from a token
                             // var uniqueNameClaim = jwtToken.Claims.First(c => c.Type == "unique_name").Value
                             var claims = new List<Claim> {
@@ -139,10 +139,10 @@ namespace RealEstate.UI.Areas.Customer.Controllers
                             _tokenProvider.SetToken(jwt);
                             return RedirectToAction(nameof(Index), "Home");
                         }
-                        catch (ArgumentNullException ex)
+                        catch (Exception ex)
                         {
-                            Console.WriteLine($"Jwt Error: {ex.Message}");
-                            return RedirectToAction(nameof(AccessDenied), "Auth");
+                            TempData["error"] = ex.Message;
+                            return View(dto);
                         }
                     }
                 }

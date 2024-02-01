@@ -9,8 +9,8 @@
 namespace RealEstate.Dto
 {
     public record TokenDto(
-        string AccessToken,
-        string XsrfToken,
+        string? AccessToken = null,
+        string? XsrfToken = null,
         string? RefreshToken = null
     );
 
