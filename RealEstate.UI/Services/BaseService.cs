@@ -238,8 +238,6 @@ namespace RealEstate.UI.Services
                         }
                         else
                         {
-                            if (_httpAccessor.HttpContext is not null) await _httpAccessor.HttpContext.SignOutAsync();
-                            _tokenProvider.ClearToken();
                             throw new AuthenticationFailureException("You are not authorized to perform this action. Please login.");
                         }
                     }
@@ -290,6 +288,8 @@ namespace RealEstate.UI.Services
             }
             catch (AuthenticationFailureException)
             {
+                if (_httpAccessor.HttpContext is not null) await _httpAccessor.HttpContext.SignOutAsync();
+                _tokenProvider.ClearToken();
                 throw;
                 // var errorResponse = new ApiResponse
                 // {

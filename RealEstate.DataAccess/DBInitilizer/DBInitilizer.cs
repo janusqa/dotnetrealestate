@@ -85,11 +85,16 @@ namespace RealEstate.DataAccess.DBInitilizer
                 SD.Role_Employee,
             };
 
-            var RolesToCreate = roles
-                .Where(r => !_rm.RoleExistsAsync(r).GetAwaiter().GetResult())
-                .ToList();
+            var rolesToCreate = new List<string>();
+            foreach (var role in roles)
+            {
+                if (!await _rm.RoleExistsAsync(role))
+                {
+                    rolesToCreate.Add(role);
+                }
+            }
 
-            foreach (var task in RolesToCreate)
+            foreach (var task in rolesToCreate)
             {
                 await _rm.CreateAsync(new IdentityRole(task));
             }
