@@ -13,6 +13,9 @@ using Microsoft.AspNetCore.Identity;
 using RealEstate.Jwt;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.Extensions.Options;
+using RealEstate;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -97,72 +100,8 @@ builder.Services.AddApiVersioning(options =>
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
-{
-    // *** BEGIN - THIS MUST MUST BE ADDED TO SUPPORT BEARER TOKENS
-    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        Description =
-            "JWT Authorization header using the Bearer scheme. \r\n\r\n " +
-            "Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\n" +
-            "Example: \"Bearer 12345abcdef\"",
-        Name = "Authorization",
-        In = ParameterLocation.Header,
-        Scheme = "Bearer"
-    });
-    options.AddSecurityRequirement(new OpenApiSecurityRequirement()
-    {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                    {
-                        Type = ReferenceType.SecurityScheme,
-                        Id = "Bearer"
-                    },
-                Scheme = "oauth2",
-                Name = "Bearer",
-                In = ParameterLocation.Header
-            },
-            new List<string>()
-        }
-    });
-    options.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Version = "v1.0",
-        Title = "RealEstate Api v 1.0",
-        Description = "RealEstate Management Api",
-        TermsOfService = new Uri("https://localhost:7002/Customer/Home/Privacy"),
-        Contact = new OpenApiContact
-        {
-            Name = "JanusQA",
-            Url = new Uri("https://localhost:7002"),
-        },
-        License = new OpenApiLicense
-        {
-            Name = "MIT License",
-            Url = new Uri("https://localhost:7002"),
-        }
-    });
-    options.SwaggerDoc("v2", new OpenApiInfo
-    {
-        Version = "v2.0",
-        Title = "RealEstate Api v 2.0",
-        Description = "RealEstate Management Api",
-        TermsOfService = new Uri("https://localhost:7002/Customer/Home/Privacy"),
-        Contact = new OpenApiContact
-        {
-            Name = "JanusQA",
-            Url = new Uri("https://localhost:7002"),
-        },
-        License = new OpenApiLicense
-        {
-            Name = "MIT License",
-            Url = new Uri("https://localhost:7002"),
-        }
-    });
-    // *** END - THIS MUST MUST BE ADDED TO SUPPORT BEARER TOKENS
-});
+builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, SwaggerConfiguration>();
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 

@@ -116,7 +116,6 @@ namespace RealEstate.UI.Services
                 // 1. If statuscode is authorized continure processing
                 // 2. If statuscode is unauthorized and access token is expired. Refresh access token (using refresh token).
 
-
                 if (httpResponseMessage.StatusCode == HttpStatusCode.Unauthorized)
                 {
                     var token = _tokenProvider.GetToken();
@@ -233,15 +232,6 @@ namespace RealEstate.UI.Services
                 if (_httpAccessor.HttpContext is not null) await _httpAccessor.HttpContext.SignOutAsync();
                 _tokenProvider.ClearToken();
                 throw;
-                // var errorResponse = new ApiResponse
-                // {
-                //     ErrorMessages = [ex.Message],
-                //     IsSuccess = false,
-                //     StatusCode = HttpStatusCode.Unauthorized
-                // };
-                // var jsonError = JsonConvert.SerializeObject(errorResponse);
-                // var apiResponse = JsonConvert.DeserializeObject<T>(jsonError);
-                // return apiResponse;
             }
             catch (Exception ex)
             {
