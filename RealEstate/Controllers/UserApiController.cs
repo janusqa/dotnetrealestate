@@ -25,6 +25,22 @@ namespace RealEstate.Controllers
 
         }
 
+        // This error endpoint is for testing purposes only.
+        // It is not part of the api
+        [HttpGet("fileerror")]
+        public async Task<IActionResult> FileError()
+        {
+            await Task.CompletedTask;
+            throw new FileNotFoundException();
+        }
+
+        [HttpGet("imageerror")]
+        public async Task<IActionResult> ImageError()
+        {
+            await Task.CompletedTask;
+            throw new BadImageFormatException("Fake Image Exception");
+        }
+
         [HttpPost("login")]
         [ProducesResponseType(StatusCodes.Status200OK)] // these are the types of responses this action can produce
         [ProducesResponseType(StatusCodes.Status400BadRequest)] // we use them so swagger does not show responses as undocumented

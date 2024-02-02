@@ -536,12 +536,72 @@ Image uploads
 1. Enable static files in api project
    add "app.UseStaticFiles()" to program.cs
 
-Exception Filters via Extensions
+Exception Filters 
 ---
-1. create "Extensions" Direction
+1. create "Filters" Direction
 2. create your class, inherited from IExceptionFilter
 3. In programs.cs set up in the services section by extending builder.Services.AddControllersWithViews
    ```
    builder.Services.AddControllersWithViews(f => f.Filters.Add(new RedirectOnUnauthorized()));
 
    ```
+
+Custom Exception Handling in API
+---
+1. Create a ErrorHandlerController
+2. Configure Exception Handling in program.cs
+   add to pipeline
+   ```
+   app.UseExceptionHandler("/api/v2/errorhandler/processerror");
+   ```
+   "/errorhandling/processerror" is the route to the controller
+3. Overiding the the type field in the "Problem" to return a custom value
+   Say you want to show a custom link for 500 error handled by the ErrorHandler
+   Controller.  In program.cs you would chanin "ConfigureApiBehaviourOptions" unto
+   "AddControllers" and define a client error mapping in there. Any 500 handled now
+   will in their Probmlem Type filed have this url. Now user can click and find out what your custom error means.
+   eg.
+   ```
+   builder.Services.AddControllers()
+   .ConfigureApiBehaviorOptions(options =>
+    options.ClientErrorMapping[StatusCodes.Status500InternalServerError] = new ClientErrorData
+    {
+        Link = "https://fakelink.com" // this can be any link you like
+    }
+   )
+   ```
+
+FILTERS as an alternative Method for Exception Handling 
+---
+1. As usual create your Filters top level folder
+2. Create Exceptions Folder (as they are various types of filtes, eg. action filters)
+3. Create your exception filter class eg. "CustomExceptionFilter.cs"
+   Note this time we inherit from IActionFilter so we have access
+   to methods that hook us into what happns after or during execution
+   of action
+4. configure in program.cs
+   ```
+   builder.Services.AddControllers(options =>
+      option.Filters.Add<CustomeExceptionFilter>()
+   );
+
+   ```   
+5. Note that if you want processing of error to end at the filter,
+   by defult it does not, the error will also be handled by the 
+   ErrorHandlerController. We may or may not want this, so to stop
+   an error from being futher handled in the filter, after processing the 
+   error we can use "context.ExceptionHandled = true". This will stop any 
+   furuther handling of the error that may overwrite the work we already
+   did in the filter.
+
+EXTENSIONS as an alternative Method for Exception Handling 
+NB: if you use this you do not need the Controller, this will replace it
+unlike Filters which is an additon to it.
+---
+Create the CustomExceptionExtension class as a static class (as ususal for extensions) as it will be an extension on the app itself. Then use it in 
+program.cs by adding it to pipeline
+```
+app.HandleError() // HandleError is what we chose to call our extension method.
+```
+see Errorhandling/Extensions/CustomExceptionExtension.cs
+

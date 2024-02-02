@@ -5,17 +5,16 @@ using RealEstate.DataAccess.UnitOfWork.IUnitOfWork;
 using RealEstate.DataAccess.Repository;
 using RealEstate.DataAccess.DBInitilizer;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.OpenApi.Models;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Mvc;
 using RealEstate.Models.Identity;
 using Microsoft.AspNetCore.Identity;
 using RealEstate.Jwt;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using Microsoft.Extensions.Options;
 using RealEstate;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using RealEstate.ErrorHandling.Filters.Exceptions;
+using RealEstate.ErrorHandling.Extensions;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -39,7 +38,13 @@ builder.Services.AddControllers(options =>
             Duration = 30
         }
     );
-}).AddNewtonsoftJson();
+    options.Filters.Add<CustomExceptionFilter>();
+}).ConfigureApiBehaviorOptions(options =>
+    options.ClientErrorMapping[StatusCodes.Status500InternalServerError] = new ClientErrorData
+    {
+        Link = "https://fakelink.com/500" // this can be any link you like
+    }
+).AddNewtonsoftJson();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
@@ -118,6 +123,12 @@ if (app.Environment.IsDevelopment())
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "RealEstateApi_v1");
     });
 }
+
+// enable exception handling
+// 1. Enable this if using controller way of globally handling Errors
+// app.UseExceptionHandler("/api/v2/errorhandler/processerror");
+// 2. Enable this if using Extensions way of globallying handling Errors`
+app.HandleError(app.Environment.IsDevelopment());
 
 // enable static files in wwwroot
 app.UseStaticFiles();

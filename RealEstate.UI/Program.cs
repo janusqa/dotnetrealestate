@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using RealEstate.UI.ApiService;
-using RealEstate.UI.Extensions;
+using RealEstate.UI.Filters;
 using RealEstate.UI.Services;
 using RealEstate.UI.Services.IServices;
 
