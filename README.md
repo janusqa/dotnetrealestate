@@ -546,7 +546,11 @@ Exception Filters
 
    ```
 
-Custom Exception Handling in API
+Custom Exception Handling in API We have 4 ways
+1) Controller
+2) Filters
+3) Extensions
+4) Middleware
 ---
 1. Create a ErrorHandlerController
 2. Configure Exception Handling in program.cs
@@ -604,4 +608,21 @@ program.cs by adding it to pipeline
 app.HandleError() // HandleError is what we chose to call our extension method.
 ```
 see Errorhandling/Extensions/CustomExceptionExtension.cs
+
+MIDDLEWARE.
+Becareful with middle where. Always remember to pass control to the next middleware
+when you are done. And middleware can slow down your app if it is too heavy with logic.
+We will use Errorhandling as an example by creating it as a middle ware
+and putting it as part of the pipeline in "program.cs"
+We will use the same logic as used in when we created it above for
+a) Controllers
+b) Filters
+c) Extensions
+d) MiddleWare (this current section)
+1. Create Middleware folder and create your middleware file and class in it
+eg. "CustomExceptionMiddleWare" 
+2. Now set it up in programs.cs
+   ```
+   app.UseMiddleWare<CustomExceptionMiddleWare>();
+   ```
 

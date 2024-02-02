@@ -13,6 +13,8 @@ namespace RealEstate.ErrorHandling.Extensions
                 {
                     context.Response.StatusCode = 500;
                     context.Response.ContentType = "application/json";
+                    // feature is like a handle to the Exception.
+                    // once we get it it will contain all the properties of an Exception
                     var feature = context.Features.Get<IExceptionHandlerFeature>();
                     if (feature != null)
                     {

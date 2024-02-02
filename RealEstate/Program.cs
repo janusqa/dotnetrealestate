@@ -15,6 +15,7 @@ using RealEstate;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using RealEstate.ErrorHandling.Filters.Exceptions;
 using RealEstate.ErrorHandling.Extensions;
+using RealEstate.MiddleWare;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -128,7 +129,9 @@ if (app.Environment.IsDevelopment())
 // 1. Enable this if using controller way of globally handling Errors
 // app.UseExceptionHandler("/api/v2/errorhandler/processerror");
 // 2. Enable this if using Extensions way of globallying handling Errors`
-app.HandleError(app.Environment.IsDevelopment());
+//app.HandleError(app.Environment.IsDevelopment());
+// 3. Enable this if using Middleware way of globallying handling Errors`
+app.UseMiddleware<CustomExceptionMiddleware>();
 
 // enable static files in wwwroot
 app.UseStaticFiles();
