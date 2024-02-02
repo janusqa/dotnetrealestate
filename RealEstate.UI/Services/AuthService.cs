@@ -8,8 +8,14 @@ namespace RealEstate.UI.Services
     {
         private readonly string _url;
 
-        public AuthService(IHttpClientFactory httpClient, IHttpContextAccessor httpAccessor, ITokenProvider tokenProvider, string url)
-            : base(httpClient, httpAccessor, tokenProvider, url)
+        public AuthService(
+            IHttpClientFactory httpClient,
+            IHttpContextAccessor httpAccessor,
+            ITokenProvider tokenProvider,
+            IApiMessageRequestBuilder messageBuilder,
+            string url
+        )
+            : base(httpClient, httpAccessor, tokenProvider, messageBuilder, url)
         {
             _url = url;
         }

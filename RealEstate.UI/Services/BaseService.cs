@@ -1,12 +1,10 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Security.Claims;
-using System.Text;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Newtonsoft.Json;
-using NuGet.Common;
 using RealEstate.Dto;
 using RealEstate.UI.Models;
 using RealEstate.UI.Services.IServices;
@@ -19,18 +17,21 @@ namespace RealEstate.UI.Services
         private readonly IHttpClientFactory _httpClient;
         private readonly IHttpContextAccessor _httpAccessor;
         private readonly ITokenProvider _tokenProvider;
+        private readonly IApiMessageRequestBuilder _messageBuilder;
         private readonly string _url;
 
         public BaseService(
             IHttpClientFactory httpClient,
             IHttpContextAccessor httpAccessor,
             ITokenProvider tokenProvider,
+            IApiMessageRequestBuilder messageBuilder,
             string url
         )
         {
             _httpClient = httpClient;
             _httpAccessor = httpAccessor;
             _tokenProvider = tokenProvider;
+            _messageBuilder = messageBuilder;
             _url = url;
         }
 
@@ -99,66 +100,7 @@ namespace RealEstate.UI.Services
             {
                 var client = _httpClient.CreateClient("RealEstateAPI");
 
-                var messageFactory = () =>
-                {
-                    HttpRequestMessage message = new HttpRequestMessage();
-
-                    var contentType = apiRequest.ContentType switch
-                    {
-                        SD.ContentType.MultiPartFormData => "*/*",
-                        _ => "application/json"
-                    };
-                    message.Headers.Add("Accept", contentType);
-
-                    message.Method = apiRequest.ApiMethod switch
-                    {
-                        SD.ApiMethod.POST => HttpMethod.Post,
-                        SD.ApiMethod.PUT => HttpMethod.Put,
-                        SD.ApiMethod.DELETE => HttpMethod.Delete,
-                        _ => HttpMethod.Get,
-                    };
-
-                    message.RequestUri = new Uri(apiRequest.Url);
-
-                    if (apiRequest.Data != null)
-                    {
-                        if (apiRequest.ContentType == SD.ContentType.MultiPartFormData)
-                        {
-                            // form multi-part
-                            var content = new MultipartFormDataContent();
-                            foreach (var item in apiRequest.Data.GetType().GetProperties())
-                            {
-                                var value = item.GetValue(apiRequest.Data);
-                                if (value is IFormFile)
-                                {
-                                    var file = (IFormFile)value;
-                                    if (file is not null)
-                                    {
-                                        content.Add(new StreamContent(file.OpenReadStream()), item.Name, file.FileName);
-                                    }
-                                }
-                                else
-                                {
-                                    content.Add(new StringContent(value?.ToString() ?? ""), item.Name);
-                                }
-                            }
-                            message.Content = content;
-                        }
-                        else
-                        {
-                            // json 
-                            message.Content = new StringContent(
-                                JsonConvert
-                                    .SerializeObject(
-                                        apiRequest.Data),
-                                        Encoding.UTF8,
-                                        "application/json"
-                                    );
-                        }
-                    }
-
-                    return message;
-                };
+                var messageFactory = () => _messageBuilder.Build(apiRequest);
 
                 if (withBearer)
                 {
@@ -256,29 +198,29 @@ namespace RealEstate.UI.Services
                     // the benefits of having this class as a generic but se le vie.
                     var apiResponse = JsonConvert.DeserializeObject<ApiResponse>(jsonData);
 
-                    var errorMessages = new List<string>();
-                    errorMessages = httpResponseMessage.StatusCode switch
+
+                    if (!httpResponseMessage.IsSuccessStatusCode && apiResponse is not null)
                     {
-                        HttpStatusCode.NotFound => [.. errorMessages, "Not Found"],
-                        HttpStatusCode.Forbidden => [.. errorMessages, "Access Denied"],
-                        HttpStatusCode.Unauthorized => [.. errorMessages, "Unauthorized"],
-                        HttpStatusCode.InternalServerError => [.. errorMessages, "Internal Server Error"],
-                        _ => ["Oops, something went wrong. Please try again later"]
-                    };
+                        apiResponse.ErrorMessages = httpResponseMessage.StatusCode switch
+                        {
+                            HttpStatusCode.NotFound => [.. (apiResponse.ErrorMessages ?? []), "Not Found"],
+                            HttpStatusCode.Forbidden => [.. (apiResponse.ErrorMessages ?? []), "Access Denied"],
+                            HttpStatusCode.Unauthorized => [.. (apiResponse.ErrorMessages ?? []), "Unauthorized"],
+                            HttpStatusCode.InternalServerError => [.. (apiResponse.ErrorMessages ?? []), "Internal Server Error"],
+                            _ => ["Oops, something went wrong. Please try again later"]
+                        };
+                    }
 
                     if (apiResponse is not null)
                     {
                         apiResponse.StatusCode = httpResponseMessage.StatusCode;
-                        apiResponse.ErrorMessages = apiResponse.ErrorMessages is not null
-                            ? [.. apiResponse.ErrorMessages, .. errorMessages]
-                            : new List<string>(errorMessages);
                         jsonData = JsonConvert.SerializeObject(apiResponse);
                         var response = JsonConvert.DeserializeObject<T>(jsonData);
                         return response;
                     }
                     else
                     {
-                        throw new Exception(string.Join(" | ", errorMessages));
+                        throw new Exception("Oops, something went wrong. Please try again later");
                     }
                 }
                 else

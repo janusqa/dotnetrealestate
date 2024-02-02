@@ -21,6 +21,7 @@ builder.Services.AddHttpClient<IApiService, ApiService>("RealEstateAPI")
     });
 
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+builder.Services.AddSingleton<IApiMessageRequestBuilder, ApiMessageRequestBuilder>();
 builder.Services.AddScoped<IApiService, ApiService>();
 builder.Services.AddScoped<ITokenProvider, TokenProvider>();
 
